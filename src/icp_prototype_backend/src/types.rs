@@ -19,25 +19,10 @@ pub struct Icrc1TransferRequest {
     pub sweeped_index: Option<u64>,
 }
 
-impl Icrc1TransferRequest {
-    pub fn new(transfer_args: TransferArg, sweeped_index: Option<u64>) -> Self {
-        Self {
-            transfer_args,
-            sweeped_index,
-        }
-    }
-}
-
 #[derive(CandidType, Deserialize, Serialize, Debug, Clone, PartialEq)]
 pub struct ToRecord {
     owner: Principal,
     subaccount: Option<Vec<u8>>,
-}
-
-impl ToRecord {
-    pub fn new(owner: Principal, subaccount: Option<Vec<u8>>) -> Self {
-        Self { owner, subaccount }
-    }
 }
 
 #[derive(CandidType, Deserialize, Serialize, Debug, Clone, PartialEq)]

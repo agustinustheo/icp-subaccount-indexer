@@ -1,7 +1,5 @@
 use candid::{CandidType, Deserialize, Principal};
 use core::future::Future;
-// use core::slice::SlicePattern;
-// use futures::{stream::FuturesUnordered, StreamExt};
 use ic_cdk::api;
 use ic_cdk::api::call::CallResult;
 use ic_cdk_macros::*;
@@ -10,6 +8,7 @@ use serde::Serialize;
 use std::cell::RefCell;
 use std::collections::{hash_map::DefaultHasher, HashMap};
 use std::hash::{Hash, Hasher};
+use futures::future::join_all;
 
 mod memory;
 mod tests;
@@ -23,7 +22,7 @@ use memory::{
     TRANSACTIONS,
 };
 use types::{
-    IcCdkSpawnManager, IcCdkSpawnManagerTrait, Icrc1TransferRequest, Icrc1TransferResponse,
+    IcCdkSpawnManager, IcCdkSpawnManagerTrait,
     InterCanisterCallManager, InterCanisterCallManagerTrait, Operation, QueryBlocksRequest,
     QueryBlocksResponse, StoredPrincipal, StoredTransactions, SweepStatus, TimerManager,
     TimerManagerTrait, Timestamp,
@@ -122,6 +121,42 @@ fn get_subaccount(accountid: &AccountIdentifier) -> Result<Subaccount, Error> {
             }),
         }
     })
+}
+
+fn to_sweep_args(tx: &StoredTransactions) -> Result<TransferArgs, Error> {
+    let custodian_id = get_custodian_id().map_err(|e| Error {message: e})?;
+    let operation = tx.operation.as_ref().ok_or(Error {message: "Operation is None".to_string(),})?;
+    match operation {
+        Operation::Transfer(data) => {
+            // construct sweep destination -> custodian id
+
+            // construct sweep source of funds
+            let topup_to = data.to.clone();
+            let topup_to = topup_to.as_slice();
+            let sweep_from = AccountIdentifier::from_slice(topup_to).map_err(|err|{
+                ic_cdk::println!("Error: {:?}", err);
+                Error {message: "Error converting to to AccountIdentifier".to_string(),}
+            })?;
+            let result = get_subaccount(&sweep_from);
+            let sweep_source_subaccount = result.map_err(|err|{
+                ic_cdk::println!("Error: {:?}", err);
+                Error {message: "Error getting from_subaccount".to_string(),}
+            })?;
+
+            // calculate amount
+            let amount = data.amount.e8s - 10_000;
+
+            Ok(TransferArgs {
+                memo: Memo(0),
+                amount: Tokens::from_e8s(amount),
+                from_subaccount: Some(sweep_source_subaccount),
+                fee: Tokens::from_e8s(10_000),
+                to: custodian_id,
+                created_at_time: None,
+            })
+        },
+        _ => Err(Error {message: "Operation is not a transfer".to_string(),}),
+    } // end match
 }
 
 
@@ -619,76 +654,84 @@ async fn refund(transaction_index: u64) -> Result<String, Error> {
     Ok("Refund & tx update is successful".to_string())
 }
 
-// #[update]
-// async fn sweep_user_vault() -> Result<String, Error> {
-//     let ledger_principal_opt = PRINCIPAL.with(|stored_ref| stored_ref.borrow().get().clone());
+#[update]
+async fn sweep() -> Result<Vec<String>, Error> {
 
-//     let ledger_principal = match ledger_principal_opt.get_principal() {
-//         Some(result) => result,
-//         None => {
-//             return Err(Error {
-//                 message: "Principal is not set".to_string(),
-//             });
-//         }
-//     };
+    let mut futures = Vec::new();
 
-//     let custodian_principal_opt =
-//         CUSTODIAN_PRINCIPAL.with(|stored_ref| stored_ref.borrow().get().clone());
+    // get relevant txs
+    let txs = TRANSACTIONS.with(|transactions_ref| {
+        let transactions_borrow = transactions_ref.borrow();
+    
+        ic_cdk::println!("transactions_len: {}", transactions_borrow.len());
+    
+        // Filter transactions where sweep_status == NotSwept
+        let filtered_transactions: Vec<_> = transactions_borrow
+            .iter()
+            .filter(|(_key, value)| value.sweep_status == SweepStatus::NotSwept)
+            .collect();
+    
+        // If filtered_transactions.len() is less than up_to_count, return all transactions
+        let up_to_count = 10;
+        let skip = if filtered_transactions.len() < up_to_count {
+            0
+        } else {
+            filtered_transactions.len() - up_to_count
+        };
+    
+        ic_cdk::println!("skip: {}", skip);
+        let result: Vec<_> = filtered_transactions
+            .iter()
+            .skip(skip as usize)
+            .take(up_to_count as usize)
+            .cloned()
+            .collect();
+        result
+    });
 
-//     let custodian_principal = match custodian_principal_opt.get_principal() {
-//         Some(result) => result,
-//         None => {
-//             return Err(Error {
-//                 message: "Custodian principal is not set".to_string(),
-//             });
-//         }
-//     };
+    for tx in txs.iter() {
+        let transfer_args = to_sweep_args(&tx.1)?;
+        let future = InterCanisterCallManager::transfer(transfer_args);
+        futures.push(future);
+    }
 
-//     let mut icrc1_futures = FuturesUnordered::new();
-//     let _ = TRANSACTIONS.with(|transactions_ref| {
-//         let mut transactions: Vec<(u64, StoredTransactions)> = {
-//             transactions_ref
-//                 .borrow()
-//                 .iter()
-//                 .filter(|transaction| transaction.1.sweep_status == SweepStatus::NotSwept)
-//                 .map(|(key, transaction)| (key.clone(), transaction.clone()))
-//                 .collect()
-//         };
+    let responses = join_all(futures).await;
+    
+    let mut results = Vec::<String>::new();
 
-//         for (key, transaction) in transactions.iter_mut().map(|(k, t)| (*k, t.clone())) {
-//             icrc1_futures.push(async move {
-//                 let subaccount = match transaction.operation {
-//                     Some(Operation::Transfer(data)) => {
-//                         let to = data.to.clone();
-//                         (includes_hash(&to), to, data.amount.e8s)
-//                     }
-//                     _ => (false, vec![], 0),
-//                 };
+    // Trigger subsequent process here
+    for (index, response) in responses.iter().enumerate() {
+        let tx = txs[index].1.clone();
+        match response {
+            Ok(_) => {           
+                let status_update = update_status(&tx, SweepStatus::Swept);
+                if status_update.is_ok() {
+                    results.push(format!("tx: {}, sweep: ok, status_update: ok", tx.index));
+                } else {
+                    results.push(format!("tx: {}, sweep: ok, status_update: {}", tx.index, status_update.unwrap_err().message));
+                }
+            },
+            Err(e) => {
+                let status_update = update_status(&tx, SweepStatus::FailedToSweep);
+                if status_update.is_ok() {
+                    results.push(format!("tx: {}, sweep: {}, status_update: ok", tx.index, e));
+                } else {
+                    results.push(format!("tx: {}, sweep: {}, status_update: {}", tx.index, e, status_update.unwrap_err().message));
+                }
+            }
+        }
+    }
 
-//                 if subaccount.0 {
-//                     let transfer_args: TransferArg = TransferArg {
-//                         memo: None,
-//                         amount: subaccount.2.into(),
-//                         from_subaccount: None,
-//                         fee: None,
-//                         to: custodian_principal.into(),
-//                         created_at_time: None,
-//                     };
-//                     let req = Icrc1TransferRequest::new(transfer_args, Some(key));
+    Ok(results)
+}
 
-//                     let _response = call_icrc1_transfer(ledger_principal, req).await;
-//                 }
-//             });
-//         }
-//     });
-
-//     // Await all futures to complete their operations
-//     while let Some(_result) = icrc1_futures.next().await {
-//         // Process result if necessary
-//     }
-
-//     Ok("Subaccounts are swept to vault".to_string())
-// }
+fn get_custodian_id() -> Result<AccountIdentifier, String> {  
+    let custodian_principal_opt =
+        CUSTODIAN_PRINCIPAL.with(|stored_ref| stored_ref.borrow().get().clone());
+    let custodian_principal = custodian_principal_opt.get_principal().ok_or("Failed to get principal")?;
+    let subaccount = Subaccount([0; 32]);
+    Ok(AccountIdentifier::new(&custodian_principal, &subaccount))
+}
 
 #[query]
 fn canister_status() -> Result<String, Error> {
