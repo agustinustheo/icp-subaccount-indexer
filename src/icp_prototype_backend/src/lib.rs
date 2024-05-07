@@ -672,7 +672,8 @@ async fn sweep() -> Result<Vec<String>, Error> {
             .collect();
     
         // If filtered_transactions.len() is less than up_to_count, return all transactions
-        let up_to_count = 10;
+        // max concurrent calls allowed by the IC is 500
+        let up_to_count = 100;
         let skip = if filtered_transactions.len() < up_to_count {
             0
         } else {
