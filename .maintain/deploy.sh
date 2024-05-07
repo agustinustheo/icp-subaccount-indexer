@@ -1,3 +1,4 @@
+#------------------------------ PART #1 DEPLOYMENT ------------------------------
 # start local ICP network
 dfx start --clean --background
 
@@ -30,9 +31,6 @@ dfx deploy --specified-id ryjl3-tyaaa-aaaaa-aaaba-cai icp_ledger_canister --argu
   })
 "
 
-# deploy index canister
-dfx deploy icp_index_canister --specified-id qhbym-qaaaa-aaaaa-aaafq-cai --argument '(record {ledger_id = principal "ryjl3-tyaaa-aaaaa-aaaba-cai"})'
-
 dfx identity new custodian
 dfx identity use custodian
 export CUSTODIAN_PRINCIPAL=$(dfx identity get-principal)
@@ -40,6 +38,8 @@ echo $CUSTODIAN_PRINCIPAL
 
 # deploy backend canister
 dfx deploy icp_prototype_backend --argument "(15 : nat64, 10 : nat32  , \"ryjl3-tyaaa-aaaaa-aaaba-cai\", \"$CUSTODIAN_PRINCIPAL\")"
+
+#------------------------------ PART #2 TESTING ------------------------------
 
 # show current identity - default
 dfx identity use default
@@ -58,22 +58,21 @@ dfx canister --network local call ryjl3-tyaaa-aaaaa-aaaba-cai account_identifier
 # a8c85a1ebb81da856134eb6da837d4ee62d1189ef201c25db50f04673126ba3e
 
 
-# transfer to custodian subaccount-id 001
+# transfer to canister subaccount-id 001
 dfx ledger transfer --network local --amount 1.25 --memo 001 a8c85a1ebb81da856134eb6da837d4ee62d1189ef201c25db50f04673126ba3e
 
-# transfer to custodian subaccount-id 002
+# transfer to canister subaccount-id 002
 dfx ledger transfer --network local --amount 2.75 --memo 002 b79ddc484d7c8801e5e3ae4d0480f65258ad89e7f31d3a973e278e0823553230
 
-# transfer to custodian subaccount-id 003
+# transfer to custcanisterodian subaccount-id 003
 dfx ledger transfer --network local --amount 1.35 --memo 003 5d0df26150362dadf5a09d8ae91d1f16824b27f75de42b8a6c378e650492f014
 
-# check balance subaccount-id 001 via dfx - no longer viable
-# dfx identity use custodian
-# dfx ledger balance --subaccount 0000000000000000000000000000000000000000000000000000000000000001
+# test list_transactions via CandidUI
 
-# set interval to 5 sec
+# test refund via CandidUI
 
-# call list_transactions
+# test swap via CandidUI
 
-# refund tx - no longer viable
-# dfx canister --network local call be2us-64aaa-aaaaa-qaabq-cai refund '(1: nat64)' 
+# check custodian balance to confirm sweep
+dfx identity use custodian
+dfx ledger balance 
