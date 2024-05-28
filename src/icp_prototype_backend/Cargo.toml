@@ -28,3 +28,4 @@ ic-ledger-types = "0.10.0"
 ic-cdk-macros = "0.8.4"
 ic-stable-structures = "0.6.3"
 serde_cbor = "0.11.2"
+icp-ledger = { path = "../../ic/rs/rosetta-api/icp_ledger" }
