@@ -1,0 +1,349 @@
+load("@rules_rust//cargo:defs.bzl", "cargo_build_script")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
+load("//bazel:canbench.bzl", "rust_canbench")
+load("//bazel:canisters.bzl", "rust_canister")
+load("//bazel:defs.bzl", "rust_bench", "rust_test_suite_with_extra_srcs")
+load("//bazel:prost.bzl", "generated_files_check")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files(["canister/governance.did"])
+
+filegroup(
+    name = "protos",
+    srcs = glob(["proto/**"]),
+)
+
+# See rs/nervous_system/feature_test.md
+BASE_DEPENDENCIES = [
+    "//rs/crypto/getrandom_for_wasm",
+    "//rs/crypto/sha2",
+    "//rs/nervous_system/clients",
+    "//rs/nervous_system/common",
+    "//rs/nervous_system/neurons_fund",
+    "//rs/nervous_system/proto",
+    "//rs/nns/cmc",
+    "//rs/nns/common",
+    "//rs/nervous_system/root",
+    "//rs/nervous_system/runtime",
+    "//rs/nervous_system/governance",
+    "//rs/nns/gtc_accounts",
+    "//rs/protobuf",
+    "//rs/registry/canister",
+    "//rs/rosetta-api/ledger_core",
+    "//rs/rosetta-api/icp_ledger",
+    "//rs/rust_canisters/dfn_candid",
+    "//rs/rust_canisters/dfn_core",
+    "//rs/rust_canisters/dfn_http_metrics",
+    "//rs/rust_canisters/dfn_protobuf",
+    "//rs/rust_canisters/on_wire",
+    "//rs/sns/root",
+    "//rs/types/base_types",
+    "//rs/types/types",
+    "@crate_index//:build-info",
+    "@crate_index//:bytes",
+    "@crate_index//:candid",
+    "@crate_index//:comparable",
+    "@crate_index//:dyn-clone",
+    "@crate_index//:ic-metrics-encoder",
+    "@crate_index//:ic-stable-structures",
+    "@crate_index//:itertools",
+    "@crate_index//:lazy_static",
+    "@crate_index//:maplit",
+    "@crate_index//:mockall",
+    "@crate_index//:num-traits",
+    "@crate_index//:pretty_assertions",
+    "@crate_index//:prost",
+    "@crate_index//:rand",
+    "@crate_index//:rand_chacha",
+    "@crate_index//:rust_decimal",
+    "@crate_index//:serde",
+    "@crate_index//:serde_bytes",
+    "@crate_index//:serde_json",
+    "@crate_index//:strum",
+] + select({
+    "@rules_rust//rust/platform:wasm32-unknown-unknown": [],
+    "//conditions:default": [
+        "@crate_index//:csv",
+        "//rs/nervous_system/common/test_keys",
+    ],
+})
+
+# Each target declared in this file may choose either these (release-ready)
+# dependencies (`DEPENDENCIES`), or `DEPENDENCIES_WITH_TEST_FEATURES` feature previews.
+DEPENDENCIES = BASE_DEPENDENCIES + [
+    "//rs/nns/constants",
+    "//rs/nns/sns-wasm",
+    "//rs/sns/init",
+    "//rs/sns/swap",
+]
+
+DEPENDENCIES_WITH_TEST_FEATURES = BASE_DEPENDENCIES + [
+    "//rs/nns/constants:constants--test_feature",
+    "//rs/nns/sns-wasm:sns-wasm--test_feature",
+    "//rs/sns/init:init--test_feature",
+    "//rs/sns/swap:swap--test_feature",
+]
+
+MACRO_DEPENDENCIES = [
+    "//rs/nervous_system/common/build_metadata",
+    "@crate_index//:async-trait",
+    "@crate_index//:rust_decimal_macros",
+    "@crate_index//:strum_macros",
+]
+
+BUILD_DEPENDENCIES = [
+    "@crate_index//:build-info-build",
+]
+
+DEV_DEPENDENCIES = [
+    "//rs/config",
+    "//rs/nervous_system/common/test_utils",
+    "//rs/nns/governance/protobuf_generator:lib",
+    "//rs/sns/swap/protobuf_generator:lib",
+    "//rs/test_utilities/compare_dirs",
+    "@crate_index//:futures",
+    "@crate_index//:proptest",
+    "@crate_index//:tempfile",
+    "@crate_index//:tokio",
+    "@crate_index//:tokio-test",
+] + select({
+    "@rules_rust//rust/platform:wasm32-unknown-unknown": [],
+    "//conditions:default": [
+        "@crate_index//:assert_matches",
+    ],
+})
+
+MACRO_DEV_DEPENDENCIES = []
+
+ALIASES = {}
+
+cargo_build_script(
+    name = "build_script",
+    srcs = ["build.rs"],
+    aliases = ALIASES,
+    data = [],  # build script data (e.g. template files) goes here
+    version = "0.9.0",
+    deps = BUILD_DEPENDENCIES,
+)
+
+rust_library(
+    name = "governance",
+    srcs = glob(
+        ["src/**/*.rs"],
+        exclude = ["**/*tests.rs"],
+    ),
+    aliases = ALIASES,
+    crate_name = "ic_nns_governance",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    version = "0.9.0",
+    deps = DEPENDENCIES + [
+        ":build_script",
+    ],
+)
+
+rust_library(
+    name = "governance--test_feature",
+    srcs = glob(
+        ["src/**/*.rs"],
+        exclude = ["**/*tests.rs"],
+    ),
+    aliases = ALIASES,
+    crate_features = ["test"],
+    crate_name = "ic_nns_governance",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    version = "0.9.0",
+    deps = DEPENDENCIES_WITH_TEST_FEATURES + [
+        ":build_script",
+    ],
+)
+
+rust_library(
+    name = "governance--canbench_feature",
+    srcs = glob(
+        ["src/**/*.rs"],
+        exclude = ["**/*tests.rs"],
+    ),
+    aliases = ALIASES,
+    crate_features = ["canbench-rs"],
+    crate_name = "ic_nns_governance",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    version = "0.9.0",
+    deps = DEPENDENCIES + [
+        "@crate_index//:canbench-rs",
+        "@crate_index//:ic-cdk",
+    ],
+)
+
+# Usage:
+# bazel run //rs/nns/governance:governance-canbench for benchmarking
+# bazel run //rs/nns/governance:governance-canbench_update for updating the results file.
+# Currently, updating the results file is not automated, and there are no tests to avoid
+# regression. For now, we can use it as an example for benchmarking as part of an
+# investigation of potential performance issues, or when we make a change that can affect
+# the performance measured in this benchmark (currently the benchmark only measures adding a
+# neuron).
+rust_canbench(
+    name = "governance-canbench",
+    srcs = ["canbench/main.rs"],
+    results_file = "canbench/canbench_results.yml",
+    deps = [
+        ":governance--canbench_feature",
+    ],
+)
+
+rust_binary(
+    name = "generate_did",
+    srcs = ["canister/canister.rs"],
+    compile_data = ["canister/governance.did"],
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    deps = DEPENDENCIES + [
+        ":build_script",
+        ":governance",
+    ],
+)
+
+rust_binary(
+    name = "generate_test_did",
+    srcs = ["canister/canister.rs"],
+    compile_data = ["canister/governance_test.did"],
+    crate_features = ["test"],
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    deps = DEPENDENCIES_WITH_TEST_FEATURES + [
+        ":build_script",
+        ":governance--test_feature",
+    ],
+)
+
+rust_canister(
+    name = "governance-canister",
+    srcs = ["canister/canister.rs"],
+    aliases = ALIASES,
+    compile_data = ["canister/governance.did"],
+    opt = "z",  # TODO: undo once dfx-extensions do not ungzip canister modules
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    service_file = ":canister/governance.did",
+    deps = DEPENDENCIES + [
+        ":build_script",
+        ":governance",
+    ],
+)
+
+rust_canister(
+    name = "governance-canister-test",
+    srcs = ["canister/canister.rs"],
+    aliases = ALIASES,
+    compile_data = ["canister/governance_test.did"],
+    crate_features = ["test"],
+    opt = "z",  # TODO: undo once dfx-extensions do not ungzip canister modules
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    service_file = ":canister/governance_test.did",
+    deps = DEPENDENCIES_WITH_TEST_FEATURES + [
+        ":build_script",
+        ":governance--test_feature",
+    ],
+)
+
+generated_files_check(
+    name = "check_generated_files",
+    srcs = ["tests/check_generated_files.rs"],
+    data = glob(["src/gen/**/*.rs"]) + [
+        ":protos",
+        "//rs/nervous_system/proto:protos",
+        "//rs/nns/common:protos",
+        "//rs/rosetta-api/icp_ledger:protos",
+        "//rs/sns/root:protos",
+        "//rs/sns/swap:protos",
+        "//rs/types/base_types:protos",
+    ],
+    manifest_dir = "rs/nns/governance",
+    deps = [
+        "//rs/nns/governance/protobuf_generator:lib",
+        "//rs/test_utilities/compare_dirs",
+        "@crate_index//:tempfile",
+    ],
+)
+
+rust_test(
+    name = "canister_unit_test",
+    crate = ":_wasm_governance-canister",
+    data = ["canister/governance.did"],
+    env = {
+        "CARGO_MANIFEST_DIR": "rs/nns/governance",
+    },
+)
+
+rust_test(
+    name = "canister_test_unit_test",
+    crate = ":_wasm_governance-canister-test",
+    crate_features = ["test"],
+    data = ["canister/governance_test.did"],
+    env = {
+        "CARGO_MANIFEST_DIR": "rs/nns/governance",
+    },
+    proc_macro_deps = MACRO_DEPENDENCIES + MACRO_DEV_DEPENDENCIES,
+    deps = [":governance--test_feature"] + DEPENDENCIES + DEV_DEPENDENCIES + [":build_script"],
+)
+
+rust_test(
+    name = "governance_test",
+    srcs = glob(["src/**/*.rs"]),
+    aliases = ALIASES,
+    proc_macro_deps = MACRO_DEPENDENCIES + MACRO_DEV_DEPENDENCIES,
+    deps = DEPENDENCIES + DEV_DEPENDENCIES + [
+        ":build_script",
+    ],
+)
+
+rust_test(
+    name = "governance_test-test_feature",
+    srcs = glob(["src/**/*.rs"]),
+    aliases = ALIASES,
+    crate_features = ["test"],
+    proc_macro_deps = MACRO_DEPENDENCIES + MACRO_DEV_DEPENDENCIES,
+    deps = DEPENDENCIES_WITH_TEST_FEATURES + DEV_DEPENDENCIES + [
+        ":build_script",
+    ],
+)
+
+rust_bench(
+    name = "scale_bench",
+    srcs = ["benches/scale.rs"],
+    proc_macro_deps = ["@crate_index//:async-trait"],
+    deps = [
+        ":governance",
+        "//rs/nervous_system/common",
+        "//rs/nns/common",
+        "//rs/rosetta-api/icp_ledger",
+        "//rs/types/base_types",
+        "@crate_index//:criterion",
+        "@crate_index//:futures",
+        "@crate_index//:tokio-test",
+    ],
+)
+
+rust_test_suite_with_extra_srcs(
+    name = "governance_integration_test",
+    srcs = glob(
+        ["tests/*.rs"],
+        exclude = [
+            # fake.rs is a module dependency, not a test
+            "tests/fake.rs",
+            # check generated files is handed in the generated_files_check rule above
+            "tests/check_generated_files.rs",
+        ],
+    ),
+    aliases = ALIASES,
+    crate_features = ["test"],
+    data = ["tests/neurons.csv"],
+    env = {
+        "NEURON_CSV_PATH": "rs/nns/governance/tests/neurons.csv",
+    },
+    extra_srcs = glob([
+        "tests/*/*.rs",
+    ]) + ["tests/fake.rs"],
+    proc_macro_deps = MACRO_DEPENDENCIES + MACRO_DEV_DEPENDENCIES,
+    deps = [":governance--test_feature"] + DEPENDENCIES_WITH_TEST_FEATURES + DEV_DEPENDENCIES + [
+        ":build_script",
+    ],
+)

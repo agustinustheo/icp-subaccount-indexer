@@ -1,0 +1,11 @@
+[package]
+name = "ic-xnet-uri"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+http = "0.2.5"
+ic-types = { path = "../../types/types" }

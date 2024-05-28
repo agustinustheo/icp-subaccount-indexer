@@ -1,0 +1,120 @@
+load("//rs/tests:common.bzl", "DEPENDENCIES", "GUESTOS_RUNTIME_DEPS", "IC_MAINNET_NNS_RECOVERY_RUNTIME_DEPS", "MACRO_DEPENDENCIES", "NNS_CANISTER_RUNTIME_DEPS")
+load("//rs/tests:system_tests.bzl", "system_test")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "secret_key.pem",
+])
+
+# nns_upgrade_test is a manual system-test that deploys an IC with a NNS that is recovered from the latest mainnet state.
+system_test(
+    name = "nns_upgrade_test",
+    colocated_test_driver_vm_forward_ssh_agent = True,
+    colocated_test_driver_vm_required_host_features = ["dc=zh1"],
+    colocated_test_driver_vm_resources = {
+        "vcpus": 16,
+        "boot_image_minimal_size_gibibytes": 100,
+    },
+    env_inherit = ["SSH_AUTH_SOCK"],
+    flaky = True,
+    # TODO: replace 'experimental_system_test_colocation' with 'k8s' once everything is on k8s
+    tags = [
+        "experimental_system_test_colocation",
+        "no-cache",
+        "no-sandbox",
+        "system_test_nightly_nns",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],  # requires libssh that does not build on Mac OS
+    test_timeout = "eternal",
+    runtime_deps = IC_MAINNET_NNS_RECOVERY_RUNTIME_DEPS,
+    deps = [
+        "//rs/tests",
+        "//rs/tests/nns/ic_mainnet_nns_recovery",
+        "@crate_index//:anyhow",
+    ],
+)
+
+system_test(
+    name = "create_subnet_pre_master_test",
+    flaky = True,
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    tags = [
+        "k8s",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],  # requires libssh that does not build on Mac OS
+    runtime_deps = GUESTOS_RUNTIME_DEPS + NNS_CANISTER_RUNTIME_DEPS,
+    deps = DEPENDENCIES + ["//rs/tests"],
+)
+
+system_test(
+    name = "nns_token_balance_test",
+    flaky = True,
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    tags = [
+        "k8s",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],  # requires libssh that does not build on Mac OS
+    runtime_deps = GUESTOS_RUNTIME_DEPS + NNS_CANISTER_RUNTIME_DEPS,
+    deps = DEPENDENCIES + ["//rs/tests"],
+)
+
+system_test(
+    name = "nns_cycles_minting_test",
+    flaky = True,
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    tags = [
+        "k8s",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],  # requires libssh that does not build on Mac OS
+    runtime_deps = GUESTOS_RUNTIME_DEPS + NNS_CANISTER_RUNTIME_DEPS,
+    deps = DEPENDENCIES + ["//rs/tests"],
+)
+
+system_test(
+    name = "nns_cycles_minting_multi_app_subnets_test",
+    flaky = True,
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    tags = [
+        "k8s",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],  # requires libssh that does not build on Mac OS
+    runtime_deps = GUESTOS_RUNTIME_DEPS + NNS_CANISTER_RUNTIME_DEPS,
+    deps = DEPENDENCIES + ["//rs/tests"],
+)
+
+system_test(
+    name = "node_removal_from_registry_test",
+    flaky = True,
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    tags = [
+        "k8s",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],  # requires libssh that does not build on Mac OS
+    runtime_deps = GUESTOS_RUNTIME_DEPS + NNS_CANISTER_RUNTIME_DEPS,
+    deps = DEPENDENCIES + ["//rs/tests"],
+)
+
+system_test(
+    name = "bitcoin_set_config_proposal_test",
+    flaky = True,
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    tags = [
+        "k8s",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],  # requires libssh that does not build on Mac OS
+    runtime_deps = GUESTOS_RUNTIME_DEPS + NNS_CANISTER_RUNTIME_DEPS + ["@btc_canister//file"],
+    deps = DEPENDENCIES + ["//rs/tests"],
+)
+
+system_test(
+    name = "certified_registry_test",
+    flaky = True,
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    tags = [
+        "k8s",
+    ],
+    target_compatible_with = ["@platforms//os:linux"],  # requires libssh that does not build on Mac OS
+    runtime_deps = GUESTOS_RUNTIME_DEPS + NNS_CANISTER_RUNTIME_DEPS,
+    deps = DEPENDENCIES + ["//rs/tests"],
+)

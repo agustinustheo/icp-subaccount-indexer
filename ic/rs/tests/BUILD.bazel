@@ -1,0 +1,318 @@
+load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@bazel_skylib//rules:run_binary.bzl", "run_binary")
+load("@io_bazel_rules_docker//docker/package_managers:download_pkgs.bzl", "download_pkgs")
+load("@io_bazel_rules_docker//docker/package_managers:install_pkgs.bzl", "install_pkgs")
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+load("//rs/tests:common.bzl", "DEPENDENCIES", "MACRO_DEPENDENCIES", "mainnet_nns_canisters", "mainnet_sns_canisters", "qualifying_nns_canisters", "qualifying_sns_canisters", "symlink_dir", "symlink_dir_test", "symlink_dirs", "tip_nns_canisters", "tip_sns_canisters")
+load(":system_tests.bzl", "uvm_config_image")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "src/cow_safety.wasm",
+    "src/message.wasm",
+])
+
+ALIASES = {
+    "//rs/utils": "utils",
+}
+
+bool_flag(
+    name = "k8s",
+    build_setting_default = False,
+)
+
+rust_library(
+    name = "tests",
+    testonly = True,
+    srcs = glob(["src/**/*.rs"]),
+    aliases = ALIASES,
+    compile_data = [
+        "//ic-os/rootfs/guestos:opt/ic/share/ic.json5.template",
+        "src/consensus/cow_safety.wasm",
+        "src/message.wasm",
+        "src/counter.wat",
+        "src/ledger_tests/transaction_ledger_correctness.wasm",
+    ],
+    crate_name = "ic_tests",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    target_compatible_with = ["@platforms//os:linux"],  # requires libssh that does not build on Mac OS
+    deps = DEPENDENCIES,
+)
+
+download_pkgs(
+    name = "ubuntu_test_runtime_pkg",
+    additional_repos = [
+        "deb http://security.ubuntu.com/ubuntu focal-security main",
+    ],
+    image_tar = "@ubuntu_base//image",
+    packages = [
+        "ca-certificates",
+        "curl",  # TODO: remove since this is for debugging
+        "dosfstools",
+        "libssl1.1",  # the test-driver depends on libssl1.1.
+        "libunwind8",  # idem
+        "mtools",
+        "openssh-client",  # for ssh-keygen.
+        "rsync",  # for //rs/tests/consensus/orchestrator:sr_app_same_nodes_test
+        "zstd",  # for create-universal-vm-config-image.sh.
+    ],
+    tags = ["manual"],
+)
+
+install_pkgs(
+    name = "ubuntu_test_runtime_image",
+    image_tar = "@ubuntu_base//image",
+    installables_tar = ":ubuntu_test_runtime_pkg.tar",
+    installation_cleanup_commands = "rm -rf /var/lib/apt/lists/*",
+    output_image_name = "ubuntu_test_runtime_image",
+    tags = ["manual"],
+)
+
+uvm_config_image(
+    name = "colocate_uvm_config_image",
+    srcs = [
+        "//rs/tests:activate-systest-uvm-config",
+        "@ubuntu_test_runtime//image",
+    ],
+    remap_paths = {
+        "activate-systest-uvm-config": "activate",
+    },
+    tags = ["manual"],  # this target will be built if required as a dependency of another target
+)
+
+rust_test(
+    name = "tests_test",
+    aliases = ALIASES,
+    crate = ":tests",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    target_compatible_with = ["@platforms//os:linux"],  # requires libssh that does not build on Mac OS
+    deps = DEPENDENCIES,
+)
+
+exports_files([
+    "create-universal-vm-config-image.sh",
+])
+
+filegroup(
+    name = "grafana_dashboards",
+    srcs = glob(["dashboards/**/*"]),
+)
+
+tip_nns_canisters(
+    name = "tip-nns-canisters",
+)
+
+mainnet_nns_canisters(
+    name = "mainnet-nns-canisters",
+)
+
+qualifying_nns_canisters(
+    name = "qualifying-nns-canisters",
+)
+
+tip_sns_canisters(
+    name = "tip-sns-canisters",
+)
+
+mainnet_sns_canisters(
+    name = "mainnet-sns-canisters",
+)
+
+qualifying_sns_canisters(
+    name = "qualifying-sns-canisters",
+)
+
+symlink_dir(
+    name = "recovery/binaries",
+    testonly = True,
+    targets = {
+        "//rs/registry/admin:ic-admin": "ic-admin",
+        "//rs/state_tool:state-tool": "state-tool",
+        "//rs/canister_sandbox:compiler_sandbox": "compiler_sandbox",
+        "//rs/canister_sandbox:sandbox_launcher": "sandbox_launcher",
+        "//rs/canister_sandbox:canister_sandbox": "canister_sandbox",
+        "@crate_index//:ic-wasm__ic-wasm": "ic-wasm",
+    },
+)
+
+symlink_dir(
+    name = "backup/binaries",
+    testonly = True,
+    targets = {
+        "//rs/backup:ic-backup": "ic-backup",
+        "//rs/replay:ic-replay": "ic-replay",
+        "//rs/canister_sandbox:compiler_sandbox": "compiler_sandbox",
+        "//rs/canister_sandbox:sandbox_launcher": "sandbox_launcher",
+        "//rs/canister_sandbox:canister_sandbox": "canister_sandbox",
+    },
+)
+
+symlink_dir_test(
+    name = "cup_compatibility/binaries",
+    targets = {
+        "//rs/types/types:types_test": "types_test",
+    },
+)
+
+exports_files([
+    "src/orchestrator/orchestrator_universal_vm_activation.sh",
+])
+
+copy_file(
+    name = "static-file-server_image",
+    src = "@static-file-server//image",
+    out = "static-file-server.tar",
+)
+
+exports_files([
+    "src/btc_integration/bitcoin.conf",
+    "src/btc_integration/btc_activate.sh",
+])
+
+uvm_config_image(
+    name = "btc_uvm_config_image",
+    srcs = [
+        ":src/btc_integration/bitcoin.conf",
+        ":src/btc_integration/btc_activate.sh",
+        "@bitcoind//image",
+    ],
+    remap_paths = {
+        "btc_activate.sh": "activate",
+    },
+    tags = ["manual"],  # this target will be built if required as a dependency of another target
+)
+
+exports_files([
+    "src/jaeger/jaeger_activate.sh",
+])
+
+uvm_config_image(
+    name = "jaeger_uvm_config_image",
+    srcs = [
+        # ":src/btc_integration/bitcoin.conf",
+        ":src/jaeger/jaeger_activate.sh",
+        "@jaeger//image",
+    ],
+    remap_paths = {
+        "jaeger_activate.sh": "activate",
+    },
+    tags = ["manual"],  # this target will be built if required as a dependency of another target
+)
+
+filegroup(
+    name = "rosetta_workspace",
+    srcs = glob(["rosetta_workspace/*"]),
+)
+
+exports_files([
+    "src/canister_http/universal_vm_activation.sh",
+])
+
+run_binary(
+    name = "wabt-tests",
+    outs = [
+        "custom_section_name_with_spaces.wasm",
+        "duplicate_custom_section.wasm",
+        "empty_custom_section_name.wasm",
+        "empty_query_name.wasm",
+        "invalid_canister_composite_query_cq_reta.wasm",
+        "invalid_canister_composite_query_cq_retb.wasm",
+        "invalid_canister_export.wasm",
+        "invalid_canister_global_timer_reta.wasm",
+        "invalid_canister_global_timer_retb.wasm",
+        "invalid_canister_heartbeat_reta.wasm",
+        "invalid_canister_heartbeat_retb.wasm",
+        "invalid_canister_init_reta.wasm",
+        "invalid_canister_init_retb.wasm",
+        "invalid_canister_inspect_message_reta.wasm",
+        "invalid_canister_inspect_message_retb.wasm",
+        "invalid_canister_post_upgrade_reta.wasm",
+        "invalid_canister_post_upgrade_retb.wasm",
+        "invalid_canister_pre_upgrade_reta.wasm",
+        "invalid_canister_pre_upgrade_retb.wasm",
+        "invalid_canister_query_que_reta.wasm",
+        "invalid_canister_query_que_retb.wasm",
+        "invalid_canister_update_upd_reta.wasm",
+        "invalid_canister_update_upd_retb.wasm",
+        "invalid_custom_section.wasm",
+        "invalid_empty_custom_section_name.wasm",
+        "invalid_empty_query_name.wasm",
+        "invalid_import.wasm",
+        "large_custom_sections.wasm",
+        "long_exported_function_names.wasm",
+        "many_custom_sections.wasm",
+        "many_exports.wasm",
+        "many_functions.wasm",
+        "many_globals.wasm",
+        "name_clash_query_composite_query.wasm",
+        "name_clash_update_composite_query.wasm",
+        "name_clash_update_query.wasm",
+        "no_start.wasm",
+        "query_name_with_spaces.wasm",
+        "start.wasm",
+        "too_large_custom_sections.wasm",
+        "too_long_exported_function_names.wasm",
+        "too_many_custom_sections.wasm",
+        "too_many_exports.wasm",
+        "too_many_functions.wasm",
+        "too_many_globals.wasm",
+        "valid_import.wasm",
+    ],
+    args = ["$(location valid_import.wasm)"],  # passing location of an arbitrary output file is a hack, see https://github.com/bazelbuild/bazel-skylib/blob/288731ef9f7f688932bd50e704a91a45ec185f9b/rules/run_binary.bzl#L29
+    target_compatible_with = ["@platforms//os:linux"],
+    tool = "//rs/tests/testing_verification/wabt-tests:generator",
+)
+
+symlink_dirs(
+    name = "ic-hs",
+    target_compatible_with = ["@platforms//os:linux"],
+    targets = {
+        "//hs/spec_compliance:ic-ref-test": "bin",
+        "//rs/universal_canister/impl:universal_canister.wasm.gz": "test-data",
+        "//rs/tests:wabt-tests": "test-data",
+    },
+)
+
+copy_file(
+    name = "coredns_image",
+    src = "@coredns//image",
+    out = "coredns.tar",
+)
+
+copy_file(
+    name = "pebble_image",
+    src = "@pebble//image",
+    out = "pebble.tar",
+)
+
+copy_file(
+    name = "python3_image",
+    src = "@python3//image",
+    out = "python3.tar",
+)
+
+copy_file(
+    name = "openssl_image",
+    src = "@alpine_openssl//image",
+    out = "openssl.tar",
+)
+
+uvm_config_image(
+    name = "custom_domains_uvm_config_image",
+    srcs = [
+        # Docker images
+        ":coredns_image",
+        ":openssl_image",
+        ":pebble_image",
+        ":python3_image",
+
+        # Assets
+        ":src/custom_domains_integration/activate.sh",
+        ":src/custom_domains_integration/pebble_cache.py",
+        ":src/custom_domains_integration/cloudflare_api.py",
+    ],
+    remap_paths = {"activate.sh": "activate"},
+    tags = ["manual"],  # this target will be built if required as a dependency of another target
+)

@@ -1,0 +1,27 @@
+[package]
+name = "dfn_core"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[lib]
+name = "dfn_core"
+path = "src/lib.rs"
+
+[[bin]]
+name = "wasm"
+path = "test/wasm.rs"
+
+[[test]]
+name = "test"
+path = "test/test.rs"
+
+[dependencies]
+ic-base-types = { path = "../../types/base_types" }
+on_wire = { path = "../on_wire" }
+
+[dev-dependencies]
+canister-test = { path = "../../rust_canisters/canister_test" }
+dfn_json = { path = "../dfn_json" }

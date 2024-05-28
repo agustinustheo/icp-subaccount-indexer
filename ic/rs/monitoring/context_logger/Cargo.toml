@@ -1,0 +1,10 @@
+[package]
+name = "ic-context-logger"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+slog = { workspace = true }

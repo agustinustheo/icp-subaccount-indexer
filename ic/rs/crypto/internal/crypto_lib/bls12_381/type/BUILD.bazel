@@ -1,0 +1,67 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test", "rust_test_suite")
+load("//bazel:defs.bzl", "rust_bench")
+
+package(default_visibility = ["//rs/crypto:__subpackages__"])
+
+DEPENDENCIES = [
+    "@crate_index//:ic_bls12_381",
+    "@crate_index//:itertools",
+    "@crate_index//:hex",
+    "@crate_index//:lazy_static",
+    "@crate_index//:pairing",
+    "@crate_index//:rand",
+    "@crate_index//:rand_chacha",
+    "@crate_index//:sha2_0_9_1",
+    "@crate_index//:subtle",
+    "@crate_index//:zeroize",
+]
+
+MACRO_DEPENDENCIES = [
+    "@crate_index//:paste",
+]
+
+DEV_DEPENDENCIES = [
+    "//rs/crypto/test_utils/reproducible_rng",
+    "@crate_index//:criterion",
+]
+
+MACRO_DEV_DEPENDENCIES = []
+
+ALIASES = {}
+
+rust_library(
+    name = "type",
+    srcs = glob(["src/**"]),
+    aliases = ALIASES,
+    crate_name = "ic_crypto_internal_bls12_381_type",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    version = "0.1.0",
+    deps = DEPENDENCIES,
+)
+
+rust_bench(
+    name = "type_bench",
+    testonly = True,
+    srcs = ["benches/ops.rs"],
+    crate_root = "benches/ops.rs",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    deps = DEPENDENCIES + [
+        ":type",
+        "//rs/crypto/test_utils/reproducible_rng",
+        "@crate_index//:criterion",
+    ],
+)
+
+rust_test(
+    name = "type_tests",
+    crate = ":type",
+    proc_macro_deps = MACRO_DEPENDENCIES + MACRO_DEV_DEPENDENCIES,
+    deps = [":type"] + DEPENDENCIES + DEV_DEPENDENCIES,
+)
+
+rust_test_suite(
+    name = "type_integration",
+    srcs = glob(["tests/**/*.rs"]),
+    proc_macro_deps = MACRO_DEPENDENCIES + MACRO_DEV_DEPENDENCIES,
+    deps = [":type"] + DEPENDENCIES + DEV_DEPENDENCIES,
+)

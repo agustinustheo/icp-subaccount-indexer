@@ -1,0 +1,15 @@
+[package]
+name = "ic-message"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+candid = { workspace = true }
+ic-cdk = { workspace = true }
+ic-cdk-macros = { workspace = true }
+dfn_candid = {path = "../../../rust_canisters/dfn_candid"}
+dfn_core = {path = "../../../rust_canisters/dfn_core"}
+serde = { workspace = true }

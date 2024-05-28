@@ -1,0 +1,19 @@
+[package]
+name = "call-tree-test"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[[bin]]
+name = "call-tree-test-canister"
+path = "src/main.rs"
+
+[dependencies]
+dfn_core = { path = "../dfn_core" }
+dfn_json = { path = "../dfn_json" }
+dfn_macro = { path = "../dfn_macro" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+futures = { workspace = true }

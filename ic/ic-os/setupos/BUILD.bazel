@@ -1,0 +1,19 @@
+package(default_visibility = ["__subpackages__"])
+
+exports_files([
+    "partitions.csv",
+    "grub.cfg",
+    "config/config.ini",
+    "config/node_operator_private_key.pem",
+    "config/ssh_authorized_keys/admin",
+    "data/deployment.json.template",
+    "data/nns_public_key.pem",
+])
+
+# All setup-os targets are named the same, just stay in different submodules.
+# To build or run specific target:
+#
+# bazel run   //ic-os/setupos/envs/prod:upload_disk-img           [--s3_endpoint=<internal endpoint address>]
+# bazel build //ic-os/setupos/envs/dev/...
+#
+# check //ic-os/defs.bzl for the full list of targets.

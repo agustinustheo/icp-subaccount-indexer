@@ -1,0 +1,12 @@
+[package]
+name = "ic-crypto-internal-basic-sig-der-utils"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+hex = { workspace = true }
+simple_asn1 = { workspace = true }
+ic-types = { path = "../../../../../types/types" }

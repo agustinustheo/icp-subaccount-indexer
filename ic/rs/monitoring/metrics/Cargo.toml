@@ -1,0 +1,22 @@
+[package]
+name = "ic-metrics"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+futures = { workspace = true }
+ic-adapter-metrics = { path = "../adapter_metrics" }
+libc = "0.2.91"
+prometheus = { workspace = true }
+tokio = { workspace = true }
+tokio-metrics = { workspace = true }
+
+[dev-dependencies]
+ic-logger = { path = "../logger" }
+slog = { workspace = true }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+procfs = { version = "^0.9", default-features = false }

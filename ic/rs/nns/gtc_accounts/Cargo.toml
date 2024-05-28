@@ -1,0 +1,8 @@
+[package]
+name = "ic-nns-gtc-accounts"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+

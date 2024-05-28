@@ -1,0 +1,110 @@
+load("@bazel_gazelle//:def.bzl", "gazelle")
+load("@rules_python//python:pip.bzl", "compile_pip_requirements")
+
+package(default_visibility = ["//visibility:public"])
+
+# WARNING! .git is the directory, not a regular file! only consume it in your rules if you know how exactly bazel works and understand implications!
+exports_files([
+    ".git",
+    ".rclone.conf",
+    ".rclone-anon.conf",
+    "buf.yaml",
+    "clippy.toml",
+    "rustfmt.toml",
+    "WORKSPACE.bazel",
+    "mainnet-canisters.bzl",
+])
+
+# bazel/workspace_status.sh will write the current timestamp to this file on every run to provade an input that always changes for some targets.
+# The file does not have to and should not be committed, therefore will not exist on the first run on a clean source tree.
+# Therefore glob is used to not fail when the file does not exist.
+# buildifier: disable=constant-glob
+filegroup(
+    name = "bazel-timestamp",
+    srcs = glob(["bazel-timestamp.txt"]),
+)
+
+alias(
+    name = "buildifier",
+    actual = "//bazel:buildifier",
+)
+
+alias(
+    name = "ruff-format",
+    actual = "//pre-commit:ruff-format",
+)
+
+alias(
+    name = "protobuf-format",
+    actual = "//pre-commit:protobuf-format",
+)
+
+alias(
+    name = "bazelifier",
+    actual = "//rs/bazelifier",
+)
+
+alias(
+    name = "shfmt-format",
+    actual = "//pre-commit:shfmt-format",
+)
+
+alias(
+    name = "rustfmt",
+    actual = "@rules_rust//:rustfmt",
+)
+
+alias(
+    name = "ormolu-format",
+    actual = "//pre-commit:ormolu-format",
+)
+
+alias(
+    name = "gen_rust_project",
+    actual = "@rules_rust//tools/rust_analyzer:gen_rust_project",
+)
+
+# See https://github.com/bazelbuild/bazel-gazelle#running-gazelle-with-bazel
+# gazelle:prefix github.com/dfinity/ic
+# gazelle:proto disable
+gazelle(
+    name = "gazelle",
+)
+
+gazelle(
+    name = "gazelle-update-repos",
+    args = [
+        "-from_file=go.mod",
+        "-to_macro=go_deps.bzl%go_dependencies",
+        "-prune",
+    ],
+    command = "update-repos",
+)
+
+alias(
+    name = "gobin",
+    actual = "@go_sdk//:bin/go",
+    visibility = ["//visibility:public"],
+)
+
+# Builds python dependencies
+compile_pip_requirements(
+    name = "python-requirements",
+    timeout = "moderate",
+    requirements_in = "requirements.in",
+    requirements_txt = "requirements.txt",
+    tags = [
+        "requires-network",
+    ],
+)
+
+test_suite(
+    name = "single_large_node",  # the "_test" postfix is dropped on purpose since this target is meant for interactive use.
+    tags = ["manual"],
+    tests = ["//rs/tests/testing_verification/testnets:single_large_node"],
+)
+
+alias(
+    name = "deterministic-ips",
+    actual = "//rs/ic_os/deterministic_ips:deterministic-ips",
+)

@@ -1,0 +1,25 @@
+# This has only one purpose (for the time being): To test the expose_build_metadata! macro.
+# This also serves as the most bare-bones example application of that macro.
+
+[package]
+name = "ic-nervous-system-common-test-canister"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+build-info = { workspace = true }
+
+candid = { workspace = true }
+dfn_candid = { path = "../../../rust_canisters/dfn_candid" }
+dfn_core = { path = "../../../rust_canisters/dfn_core" }
+ic-nervous-system-common-build-metadata = { path = "../build_metadata" }
+
+[build-dependencies]
+build-info-build = { workspace = true }
+
+[dev-dependencies]
+candid_parser = { workspace = true }
+canister-test = { path = "../../../rust_canisters/canister_test" }
+ic-state-machine-tests = { path = "../../../state_machine_tests" }
+ic-types = { path = "../../../types/types" }
+tokio = { workspace = true }

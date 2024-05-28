@@ -1,0 +1,26 @@
+[package]
+name = "ic-registry-nns-data-provider"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+ic-canister-client = { path = "../../canister_client" }
+ic-certification = { path = "../../certification" }
+ic-crypto-tree-hash = { path = "../../crypto/tree_hash" }
+ic-interfaces-registry = { path = "../../interfaces/registry" }
+ic-nns-constants = { path = "../../nns/constants" }
+ic-registry-transport = { path = "../transport" }
+ic-types = { path = "../../types/types" }
+chrono = { workspace = true }
+prost = { workspace = true }
+rand = "0.8"
+serde = { workspace = true }
+tree-deserializer = { path = "../../tree_deserializer" }
+url = { version = "2.1.1", features = ["serde"] }
+
+[dev-dependencies]
+ic-certification-test-utils = { path = "../../certification/test-utils" }
+leb128 = "0.2.4"

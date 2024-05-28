@@ -1,0 +1,50 @@
+[package]
+name = "ic-sns-root"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[[bin]]
+name = "sns-root-canister"
+path = "canister/canister.rs"
+
+[dependencies]
+async-trait = { workspace = true }
+
+build-info = { workspace = true }
+
+candid = { workspace = true }
+comparable = { version = "0.5.1", features = ["derive"] }
+futures = { workspace = true }
+ic-base-types = { path = "../../types/base_types" }
+ic-canister-log = { path = "../../rust_canisters/canister_log" }
+ic-canisters-http-types = { path = "../../rust_canisters/http_types" }
+ic-cdk = { workspace = true }
+ic-cdk-macros = { workspace = true }
+ic-management-canister-types = { path = "../../types/management_canister_types" }
+ic-metrics-encoder = "1"
+ic-nervous-system-clients = { path = "../../nervous_system/clients" }
+ic-nervous-system-common = { path = "../../nervous_system/common" }
+ic-nervous-system-common-build-metadata = { path = "../../nervous_system/common/build_metadata" }
+ic-nervous-system-root = { path = "../../nervous_system/root" }
+ic-nervous-system-runtime = { path = "../../nervous_system/runtime" }
+ic-sns-swap = { path = "../swap" }
+icrc-ledger-types = { path = "../../../packages/icrc-ledger-types" }
+prost = { workspace = true }
+serde = { workspace = true }
+
+[dev-dependencies]
+candid_parser = { workspace = true }
+ic-sns-root-protobuf-generator = { path = "./protobuf_generator" }
+ic-test-utilities-compare-dirs = { path = "../../test_utilities/compare_dirs" }
+maplit = "1.0.2"
+tempfile = "3.1.0"
+tokio = { workspace = true }
+
+[build-dependencies]
+build-info-build = { workspace = true }
+
+[features]
+test = []

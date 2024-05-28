@@ -1,0 +1,30 @@
+# The lifeline is a motoko canister.
+#
+# This Cargo file exists so that we can invoke `moc`, the motoko compiler, at rust compile time.
+# src/lib.rs is a rust wrapper library that exposes the lifetime.wasm as a constant, for testing.
+
+[package]
+name = "lifeline"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[[bin]]
+name = "lifeline"
+path = "src/main.rs"
+
+[build-dependencies]
+ic-nns-constants = { path = "../../../constants" }
+ic-base-types = { path = "../../../../types/base_types" }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+wasmprinter = "0.2.45"
+flate2 = { workspace = true }
+candid = { workspace = true }
+dfn_candid = {path="../../../../rust_canisters/dfn_candid"}
+ic-nns-common ={path="../../../common"}
+ic-nervous-system-clients = { path="../../../../nervous_system/clients" }
+ic-nervous-system-root = { path="../../../../nervous_system/root" }
+ic-nns-test-utils = { path = "../../../../nns/test_utils" }

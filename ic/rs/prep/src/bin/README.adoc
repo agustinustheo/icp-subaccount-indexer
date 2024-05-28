@@ -1,0 +1,51 @@
+= ic-prep
+
+`ic-prep` is a cli tool to generate the secret key store for each node on a
+subnet, along with a common `registry.proto`.
+
+== Usage
+
+[source,shell]
+----
+cargo run -p ic-prep --bin ic-prep -- \
+  --working-dir /tmp/prep/node \
+  --replica_version 0.1.0 \
+  --replica-download-url ... \
+  --orchestrator-download-url ... \
+  --node 'idx:1,subnet_idx:1,xnet_api:"1.2.3.4:81",public_api:"1.2.3.4:82"'
+  --node ...
+----
+
+== --node flag
+
+The `--node` flag is used to provide information about one node.
+
+To provide information about multiple nodes, repeat the flag.
+
+The flag's value is a comma-separated list of key:value pairs, in JSON5
+format, without the `{` and `}` delimiters.
+
+The fields are:
+
+- `idx` - the node's index
+
+- `subnet_idx` - the node's subnet index
+
+- `public_api` - an endpoint on which the node will serve the public API.
+
+- `xnet_api` - an endpoint on which the node will handle XNet messages
+
+- `node_operator_principal_id` - an optional Principal to use as the node's NO.
+
+=== Example
+
+This example defines two nodes, with index 1 and 2, on the same subnet,
+with their connection endpoints on the same ports but different IP addresses
+
+[source,shell]
+----
+ic-admin
+  ...
+  --node 'idx:1,subnet_idx:1,xnet_api:"1.2.3.4:81",public_api:"1.2.3.4:82"'
+  --node 'idx:2,subnet_idx:1,xnet_api:"4.3.2.1:81",public_api:"4.3.2.1:82"'
+----

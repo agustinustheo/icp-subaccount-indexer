@@ -1,0 +1,121 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+load("//bazel:prost.bzl", "generated_files_check")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "protos",
+    srcs = glob(["proto/**"]),
+)
+
+# See rs/nervous_system/feature_test.md
+BASE_DEPENDENCIES = [
+    # Keep sorted.
+    "//packages/icrc-ledger-types:icrc_ledger_types",
+    "//rs/nervous_system/common",
+    "//rs/nervous_system/proto",
+    "//rs/rosetta-api/icrc1/index-ng",
+    "//rs/rosetta-api/icrc1/ledger",
+    "//rs/rosetta-api/ledger_canister_core",
+    "//rs/rosetta-api/ledger_core",
+    "//rs/sns/root",
+    "//rs/types/base_types",
+    "@crate_index//:base64",
+    "@crate_index//:candid",
+    "@crate_index//:isocountry",
+    "@crate_index//:lazy_static",
+    "@crate_index//:maplit",
+    "@crate_index//:prost",
+    "@crate_index//:serde",
+    "@crate_index//:serde_yaml",
+]
+
+# Each target declared in this file may choose either these (release-ready)
+# dependencies (`DEPENDENCIES`), or `DEPENDENCIES_WITH_TEST_FEATURES` feature previews.
+DEPENDENCIES = BASE_DEPENDENCIES + [
+    "//rs/nns/constants",
+    "//rs/sns/governance",
+    "//rs/sns/swap",
+]
+
+DEPENDENCIES_WITH_TEST_FEATURES = BASE_DEPENDENCIES + [
+    "//rs/nns/constants:constants--test_feature",
+    "//rs/sns/governance:governance--test_feature",
+    "//rs/sns/swap:swap--test_feature",
+]
+
+MACRO_DEPENDENCIES = []
+
+ALIASES = {}
+
+DEV_DEPENDENCIES = [
+    # Keep sorted.
+    "//rs/nervous_system/common/test_keys",
+    "//rs/sns/init/protobuf_generator:lib",
+    "//rs/test_utilities/compare_dirs",
+    "@crate_index//:num-traits",
+    "@crate_index//:tempfile",
+]
+
+MACRO_DEV_DEPENDENCIES = []
+
+rust_library(
+    name = "init",
+    srcs = glob([
+        "src/**",
+        "gen/**",
+    ]),
+    aliases = ALIASES,
+    crate_name = "ic_sns_init",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    version = "0.1.0",
+    deps = DEPENDENCIES,
+)
+
+rust_library(
+    name = "init--test_feature",
+    srcs = glob([
+        "src/**",
+        "gen/**",
+    ]),
+    aliases = ALIASES,
+    crate_features = ["test"],
+    crate_name = "ic_sns_init",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    version = "0.1.0",
+    deps = DEPENDENCIES_WITH_TEST_FEATURES,
+)
+
+generated_files_check(
+    name = "check_generated_files",
+    srcs = ["tests/check_generated_files.rs"],
+    data = glob(["src/gen/**"]) + [
+        ":protos",
+        "//rs/nervous_system/proto:protos",
+        "//rs/sns/swap:protos",
+        "//rs/types/base_types:protos",
+    ],
+    manifest_dir = "rs/sns/init",
+    deps = DEV_DEPENDENCIES,
+)
+
+# These tests will run with the testing-only CFG, i.e.:
+# - the code under `#[cfg(feature = "test")]`
+# - the code *not* under `#[cfg(not(feature = "test"))]`
+rust_test(
+    name = "init_test--test_feature",
+    crate = ":init--test_feature",
+    crate_features = ["test"],
+    proc_macro_deps = MACRO_DEV_DEPENDENCIES,
+    deps = DEV_DEPENDENCIES,
+)
+
+# These tests will run with the mainnet CFG, i.e.:
+# - the code under `#[cfg(not(feature = "test"))]`
+# - the code *not* under `#[cfg(feature = "test")]`
+rust_test(
+    name = "init_test",
+    crate = "init",
+    proc_macro_deps = MACRO_DEV_DEPENDENCIES,
+    deps = DEV_DEPENDENCIES,
+)

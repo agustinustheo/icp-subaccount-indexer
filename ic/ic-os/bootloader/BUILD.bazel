@@ -1,0 +1,33 @@
+load("//toolchains/sysimage:toolchain.bzl", "vfat_image")
+
+package(default_visibility = ["//visibility:public"])
+
+exports_files([
+    "grubenv",
+    "grub.cfg",
+])
+
+genrule(
+    name = "build-bootloader-tree",
+    srcs = [],
+    outs = [
+        "bootloader-tree.tar",
+    ],
+    cmd = "$(location build-bootloader-tree.sh) -o $@",
+    tags = ["manual"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
+    tools = ["build-bootloader-tree.sh"],
+)
+
+vfat_image(
+    name = "partition-esp.tzst",
+    src = ":bootloader-tree.tar",
+    partition_size = "100M",
+    subdir = "boot/efi",
+    tags = ["manual"],
+    target_compatible_with = [
+        "@platforms//os:linux",
+    ],
+)

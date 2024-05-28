@@ -1,0 +1,57 @@
+load("@rules_rust//rust:defs.bzl", "rust_doc", "rust_doc_test", "rust_library", "rust_test")
+
+package(default_visibility = ["//visibility:public"])
+
+DEPENDENCIES = [
+    # Keep sorted.
+    "//rs/constants",
+    "//rs/crypto/interfaces/sig_verification",
+    "//rs/crypto/sha2",
+    "//rs/crypto/standalone-sig-verifier",
+    "//rs/crypto/tree_hash",
+    "//rs/types/types",
+    "@crate_index//:hex",
+    "@crate_index//:thiserror",
+]
+
+DEV_DEPENDENCIES = [
+    # Keep sorted.
+    "//rs/crypto/test_utils/reproducible_rng",
+    "//rs/crypto/test_utils/root_of_trust",
+    "//rs/test_utilities",
+    "//rs/test_utilities/types",
+    "@crate_index//:assert_matches",
+    "@crate_index//:base64",
+    "@crate_index//:mockall",
+    "@crate_index//:rand",
+]
+
+rust_library(
+    name = "validator",
+    srcs = glob(["src/**"]),
+    crate_name = "ic_validator",
+    version = "0.9.0",
+    deps = DEPENDENCIES,
+)
+
+rust_test(
+    name = "validator_test",
+    crate = ":validator",
+    deps = DEV_DEPENDENCIES,
+)
+
+rust_test(
+    name = "ingress_validation_test",
+    srcs = ["tests/ingress_validation.rs"],
+    deps = DEPENDENCIES + DEV_DEPENDENCIES + [":validator"],
+)
+
+rust_doc(
+    name = "validator_doc",
+    crate = ":validator",
+)
+
+rust_doc_test(
+    name = "validator_doc_test",
+    crate = ":validator",
+)

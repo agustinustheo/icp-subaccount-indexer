@@ -1,0 +1,24 @@
+[package]
+name = "ic-http-utils"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+flate2 = "1.0.20"
+hex = { workspace = true }
+http = "0.2.1"
+tokio = { workspace = true }
+ic-crypto-sha2 = { path = "../crypto/sha2" }
+ic-logger = { path = "../monitoring/logger" }
+reqwest = { workspace = true }
+slog = { workspace = true }
+tar = "0.4.38"
+
+[dev-dependencies]
+assert_matches = { workspace = true }
+ic-test-utilities-in-memory-logger = { path = "../test_utilities/in_memory_logger" }
+mockito = { workspace = true }
+tempfile = "3.1.0"

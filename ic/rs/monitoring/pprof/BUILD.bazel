@@ -1,0 +1,21 @@
+load("@rules_rust//rust:defs.bzl", "rust_library")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_library(
+    name = "pprof",
+    srcs = glob(["src/**"]),
+    crate_name = "ic_pprof",
+    proc_macro_deps = [
+        "@crate_index//:async-trait",
+    ],
+    version = "0.9.0",
+    deps = [
+        "@crate_index//:lazy_static",
+        "@crate_index//:pprof",
+        "@crate_index//:prost",
+        "@crate_index//:regex",
+        "@crate_index//:thiserror",
+        "@crate_index//:tokio",
+    ],
+)

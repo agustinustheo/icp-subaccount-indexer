@@ -1,0 +1,15 @@
+[package]
+name = "ic-crypto-secrets-containers"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+zeroize = { version = "1.4.3", features = ["zeroize_derive"] }
+
+[dev-dependencies]
+serde_cbor = { workspace = true }
+serde_bytes = { workspace = true }

@@ -1,0 +1,236 @@
+sh_test(
+    name = "ruff-lint",
+    size = "small",
+    srcs = ["ruff-lint.sh"],
+    data = [
+        "//:WORKSPACE.bazel",
+        "@ruff",
+    ],
+    env = {
+        # Hack to escape the sandbox and grep on the actual repository
+        "WORKSPACE": "$(rootpath //:WORKSPACE.bazel)",
+        "ruff_path": "$(rootpath @ruff//:ruff)",
+    },
+    tags = [
+        "external",  # force test to be unconditionally executed.
+        "local",  # precludes the action or test from being remotely cached, remotely executed, or run inside the sandbox.
+        "smoke",  # it should be run before committing code changes into the version control system.
+    ],
+)
+
+sh_binary(
+    name = "ruff-format",
+    srcs = ["ruff-format.sh"],
+    data = [
+        "//:WORKSPACE.bazel",
+        "@ruff",
+    ],
+    env = {
+        # Hack to escape the sandbox and grep on the actual repository
+        "WORKSPACE": "$(rootpath //:WORKSPACE.bazel)",
+        "ruff_path": "$(rootpath @ruff//:ruff)",
+    },
+    tags = [
+        "external",  # force test to be unconditionally executed.
+        "local",  # precludes the action or test from being remotely cached, remotely executed, or run inside the sandbox.
+        "smoke",  # it should be run before committing code changes into the version control system.
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "buf",
+    size = "small",
+    srcs = ["buf.sh"],
+    data = [
+        "//:WORKSPACE.bazel",
+        "//:buf.yaml",
+        "@buf",
+    ],
+    env = {
+        # Hack to escape the sandbox and grep on the actual repository
+        "WORKSPACE": "$(rootpath //:WORKSPACE.bazel)",
+        "buf_path": "$(rootpath @buf//:buf)",
+        "buf_config": "$(rootpath //:buf.yaml)",
+    },
+    tags = [
+        "external",  # force test to be unconditionally executed.
+        "local",  # precludes the action or test from being remotely cached, remotely executed, or run inside the sandbox.
+        "smoke",  # it should be run before committing code changes into the version control system.
+    ],
+)
+
+sh_test(
+    name = "protobuf-format-check",
+    size = "small",
+    srcs = ["protobuf-format-check.sh"],
+    data = [
+        "//:WORKSPACE.bazel",
+        "@buf",
+    ],
+    env = {
+        # Hack to escape the sandbox and grep on the actual repository
+        "WORKSPACE": "$(rootpath //:WORKSPACE.bazel)",
+        "buf_path": "$(rootpath @buf//:buf)",
+    },
+    tags = [
+        "external",  # force test to be unconditionally executed.
+        "local",  # precludes the action or test from being remotely cached, remotely executed, or run inside the sandbox.
+        "smoke",  # it should be run before committing code changes into the version control system.
+    ],
+)
+
+sh_binary(
+    name = "protobuf-format",
+    srcs = ["protobuf-format.sh"],
+    data = [
+        "//:WORKSPACE.bazel",
+        "@buf",
+    ],
+    env = {
+        # Hack to escape the sandbox and grep on the actual repository
+        "WORKSPACE": "$(rootpath //:WORKSPACE.bazel)",
+        "buf_path": "$(rootpath @buf//:buf)",
+    },
+    tags = [
+        "external",  # force test to be unconditionally executed.
+        "local",  # precludes the action or test from being remotely cached, remotely executed, or run inside the sandbox.
+        "smoke",  # it should be run before committing code changes into the version control system.
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "shellcheck",
+    size = "small",
+    srcs = ["shellcheck.sh"],
+    data = [
+        "//:WORKSPACE.bazel",
+        "@shellcheck",
+    ],
+    env = {
+        # Hack to escape the sandbox and grep on the actual repository
+        "WORKSPACE": "$(rootpath //:WORKSPACE.bazel)",
+        "shellcheck_path": "$(rootpath @shellcheck//:shellcheck)",
+    },
+    tags = [
+        "external",  # force test to be unconditionally executed.
+        "local",  # precludes the action or test from being remotely cached, remotely executed, or run inside the sandbox.
+        "smoke",  # it should be run before committing code changes into the version control system.
+    ],
+)
+
+sh_test(
+    name = "shfmt-lint",
+    size = "small",
+    srcs = ["shfmt-lint.sh"],
+    data = [
+        "//:WORKSPACE.bazel",
+        "@shfmt",
+    ],
+    env = {
+        # Hack to escape the sandbox and grep on the actual repository
+        "WORKSPACE": "$(rootpath //:WORKSPACE.bazel)",
+        "shfmt_path": "$(rootpath @shfmt//:shfmt)",
+    },
+    tags = [
+        "external",  # force test to be unconditionally executed.
+        "local",  # precludes the action or test from being remotely cached, remotely executed, or run inside the sandbox.
+        "smoke",  # it should be run before committing code changes into the version control system.
+    ],
+)
+
+sh_binary(
+    name = "shfmt-format",
+    srcs = ["shfmt-format.sh"],
+    data = [
+        "//:WORKSPACE.bazel",
+        "@shfmt",
+    ],
+    env = {
+        # Hack to escape the sandbox and grep on the actual repository
+        "WORKSPACE": "$(rootpath //:WORKSPACE.bazel)",
+        "shfmt_path": "$(rootpath @shfmt//:shfmt)",
+    },
+    tags = [
+        "local",  # precludes the action or test from being remotely cached, remotely executed, or run inside the sandbox.
+        "smoke",  # it should be run before committing code changes into the version control system.
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sh_test(
+    name = "DFINITY-capitalization",
+    size = "small",
+    srcs = ["DFINITY-capitalization.sh"],
+    data = [
+        "//:WORKSPACE.bazel",
+    ],
+    env = {
+        # Hack to escape the sandbox and grep on the actual repository
+        "WORKSPACE": "$(rootpath //:WORKSPACE.bazel)",
+    },
+    tags = [
+        "external",  # force test to be unconditionally executed.
+        "local",  # precludes the action or test from being remotely cached, remotely executed, or run inside the sandbox.
+        "smoke",  # it should be run before committing code changes into the version control system.
+    ],
+)
+
+sh_test(
+    name = "do-not-merge",
+    size = "small",
+    srcs = ["do-not-merge.sh"],
+    data = [
+        "//:WORKSPACE.bazel",
+    ],
+    env = {
+        # Hack to escape the sandbox and grep on the actual repository
+        "WORKSPACE": "$(rootpath //:WORKSPACE.bazel)",
+    },
+    tags = [
+        "external",  # force test to be unconditionally executed.
+        "local",  # precludes the action or test from being remotely cached, remotely executed, or run inside the sandbox.
+        "smoke",  # it should be run before committing code changes into the version control system.
+    ],
+)
+
+sh_test(
+    name = "ormolu-lint",
+    size = "small",
+    srcs = ["ormolu-lint.sh"],
+    data = [
+        "//:WORKSPACE.bazel",
+        "@ormolu",
+    ],
+    env = {
+        # Hack to escape the sandbox and grep on the actual repository
+        "WORKSPACE": "$(rootpath //:WORKSPACE.bazel)",
+        "ormolu_path": "$(rootpath @ormolu//:ormolu)",
+    },
+    tags = [
+        "external",  # force test to be unconditionally executed.
+        "local",  # precludes the action or test from being remotely cached, remotely executed, or run inside the sandbox.
+        "smoke",  # it should be run before committing code changes into the version control system.
+    ],
+)
+
+sh_binary(
+    name = "ormolu-format",
+    srcs = ["ormolu-format.sh"],
+    data = [
+        "//:WORKSPACE.bazel",
+        "@ormolu",
+    ],
+    env = {
+        # Hack to escape the sandbox and grep on the actual repository
+        "WORKSPACE": "$(rootpath //:WORKSPACE.bazel)",
+        "ormolu_path": "$(rootpath @ormolu//:ormolu)",
+    },
+    tags = [
+        "external",  # force test to be unconditionally executed.
+        "local",  # precludes the action or test from being remotely cached, remotely executed, or run inside the sandbox.
+        "smoke",  # it should be run before committing code changes into the version control system.
+    ],
+    visibility = ["//visibility:public"],
+)

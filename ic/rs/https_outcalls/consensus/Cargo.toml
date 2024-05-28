@@ -1,0 +1,37 @@
+[package]
+name = "ic-https-outcalls-consensus"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+ic-consensus-utils = { path = "../../consensus/utils" }
+ic-error-types = { path = "../../types/error_types" }
+ic-interfaces = { path = "../../interfaces" }
+ic-interfaces-adapter-client = { path = "../../interfaces/adapter_client" }
+ic-interfaces-registry = { path = "../../interfaces/registry" }
+ic-interfaces-state-manager = { path = "../../interfaces/state_manager" }
+ic-logger = { path = "../../monitoring/logger" }
+ic-metrics = { path = "../../monitoring/metrics" }
+ic-protobuf = { path = "../../protobuf" }
+ic-registry-client-helpers = { path = "../../registry/helpers" }
+ic-replicated-state = { path = "../../replicated_state" }
+ic-types = { path = "../../types/types" }
+prometheus = { workspace = true }
+slog = { workspace = true }
+
+[dev-dependencies]
+ic-artifact-pool = { path = "../../artifact_pool" }
+ic-error-types = { path = "../../types/error_types" }
+ic-consensus-mocks = { path = "../../consensus/mocks" }
+ic-registry-subnet-type = { path = "../../registry/subnet_type" }
+ic-registry-subnet-features = { path = "../../registry/subnet_features" }
+ic-test-utilities = { path = "../../test_utilities" }
+ic-test-utilities-logger = { path = "../../test_utilities/logger" }
+ic-test-utilities-registry = { path = "../../test_utilities/registry" }
+ic-test-utilities-state = { path = "../../test_utilities/state" }
+ic-test-utilities-time = { path = "../../test_utilities/time" }
+ic-test-utilities-types = { path = "../../test_utilities/types" }
+mockall = { workspace = true }

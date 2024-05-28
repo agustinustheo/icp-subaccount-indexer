@@ -1,0 +1,11 @@
+[package]
+name = "identity-canister"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[[bin]]
+name = "identity-canister"
+path = "canister/canister.rs"

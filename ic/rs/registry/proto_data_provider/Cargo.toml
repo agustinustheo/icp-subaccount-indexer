@@ -1,0 +1,16 @@
+[package]
+name = "ic-registry-proto-data-provider"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+bytes = { workspace = true }
+ic-interfaces-registry = { path = "../../interfaces/registry" }
+ic-registry-common-proto = { path = "../proto" }
+ic-registry-transport = { path = "../transport" }
+ic-sys = { path = "../../sys" }
+ic-types = { path = "../../types/types" }
+thiserror = { workspace = true }

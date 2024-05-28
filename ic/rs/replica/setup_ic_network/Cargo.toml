@@ -1,0 +1,36 @@
+[package]
+name = "ic-replica-setup-ic-network"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+either = "1.6.0"
+ic-artifact-manager = { path = "../../artifact_manager" }
+ic-artifact-pool = { path = "../../artifact_pool" }
+ic-config = { path = "../../config" }
+ic-consensus = { path = "../../consensus" }
+ic-consensus-manager = { path = "../../p2p/consensus_manager" }
+ic-consensus-utils = { path = "../../consensus/utils" }
+ic-crypto-interfaces-sig-verification = { path = "../../crypto/interfaces/sig_verification" }
+ic-crypto-tls-interfaces = { path = "../../crypto/tls_interfaces" }
+ic-cycles-account-manager = { path = "../../cycles_account_manager" }
+ic-https-outcalls-consensus = { path = "../../https_outcalls/consensus" }
+ic-ingress-manager = { path = "../../ingress_manager" }
+ic-interfaces = { path = "../../interfaces" }
+ic-interfaces-adapter-client = { path = "../../interfaces/adapter_client" }
+ic-interfaces-registry = { path = "../../interfaces/registry" }
+ic-interfaces-state-manager = { path = "../../interfaces/state_manager" }
+ic-logger = { path = "../../monitoring/logger" }
+ic-metrics = { path = "../../monitoring/metrics" }
+ic-peer-manager = { path = "../../p2p/peer_manager" }
+ic-quic-transport = { path = "../../p2p/quic_transport" }
+ic-registry-client-helpers = { path = "../../registry/helpers" }
+ic-replicated-state = { path = "../../replicated_state" }
+ic-state-manager = { path = "../../state_manager" }
+ic-state-sync-manager = { path = "../../p2p/state_sync_manager" }
+ic-types = { path = "../../types/types" }
+slog = { workspace = true }
+tokio = { workspace = true }

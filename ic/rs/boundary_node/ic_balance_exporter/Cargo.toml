@@ -1,0 +1,36 @@
+[package]
+name = "ic-balance-exporter"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[[bin]]
+name = "ic-balance-exporter"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = { workspace = true }
+async-trait = { workspace = true }
+axum = { workspace = true }
+candid = { workspace = true }
+clap = { version = "3.2.25", features = ["derive"] }
+dashmap = "5.3.4"
+futures = { workspace = true }
+humantime = "2.1.0"
+hyper = { workspace = true }
+ic-agent = { workspace = true }
+indoc = "1.0.9"
+mockall = { workspace = true }
+opentelemetry = { version = "0.20", features = ["metrics"] }
+opentelemetry-prometheus = "0.13.0"
+prometheus = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+
+[dev-dependencies]
+tempfile = "3.3.0"

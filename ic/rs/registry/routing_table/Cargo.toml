@@ -1,0 +1,17 @@
+[package]
+name = "ic-registry-routing-table"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+candid = { workspace = true }
+ic-protobuf = { path = "../../protobuf" }
+ic-base-types = { path = "../../types/base_types" }
+serde = { workspace = true }
+
+[dev-dependencies]
+assert_matches = { workspace = true }
+ic-test-utilities-types = { path = "../../test_utilities/types" }

@@ -1,0 +1,11 @@
+[package]
+name = "criterion-time"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+criterion = "0.5"
+libc = "0.2.91"

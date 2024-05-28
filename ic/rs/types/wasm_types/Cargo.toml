@@ -1,0 +1,14 @@
+[package]
+name = "ic-wasm-types"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+ic-crypto-sha2 = { path = "../../crypto/sha2" }
+ic-sys = { path = "../../sys" }
+ic-types = { path = "../types" }
+ic-utils = { path = "../../utils" }
+serde = { workspace = true }

@@ -1,0 +1,171 @@
+= HostOS
+
+== Introduction
+
+'HostOS' refers to the operating system running on the host machine. Its main responsibility is to launch and run the GuestOS in a virtual machine. 
+
+In terms of its capabilities, HostOS is intentionally limited by design to not perform any trusted capabilities—anything related to the Internet Computer Protocol (replica, orchestrator, etc).
+
+== Building HostOS
+
+To build a Hostos image, refer to the link:../README.adoc[IC-OS README]
+
+== Partitioning
+
+The partitioning layout consists of multiple logical volumes and two primary partitions.
+Both HostOS and GuestOS have separate config and A/B partitions. The A/B partitions enable a dual-boot system that can be updated and maintained without any downtime.
+
+Please find a rough schema below.
+
+|====
+2+^|Primary Partitions 17+^|LVM
+9+^|HostOS             10+^| GuestOS
+|EFI|Grub|Config|Boot A|Root A|Var A|Boot B|Root B|Var B|EFI|Grub|Config|Boot A|Root A|Var A|Boot B|Root B|Var B|Empty
+|====
+
+* *EFI*: EFI System Partition (ESP) for storing the bootloader and other UEFI-related data
+* *Grub*: Partition for storing the GRUB bootloader configuration
+* *Config*: Partition containing configuration files for each OS
+* *Boot A/B*: Boot partitions for A and B configurations
+* *Root A/B*: Root partitions for A and B configurations
+* *Var A/B*: Partitions for storing variable data (e.g., logs) for A and B configurations
+* *Empty*: Unallocated space for the GuestOS
+
+The exact partitioning layout can be found in:
+
+`ic/ic-os/hostos/partitions.csv`
+
+The LVM configuration is defined in:
+
+`ic/ic-os/hostos/volumes.csv`
+
+=== Sizing
+
+The majority of the disk space is allocated to the logical volume of the GuestOS, with only about 65 GB reserved for the HostOS. The table below displays individual partition sizes:
+
+|====
+10+^|HostOS 10+^| GuestOS
+|EFI|Grub|Config|Boot A|Root A|Var A|Boot B|Root B|Var B|Unallocated Reserve|EFI|Grub|Config|Boot A|Root A|Var A|Boot B|Root B|Var B|Empty
+|100 MB|100 MB|100 MB|1 GB|10 GB|10 GB|1 GB|10 GB|10 GB|20 GB|100 MB|100 MB|100 MB|1 GB|10 GB|10 GB|1 GB|10 GB|10 GB|100%FREE
+|====
+
+=== Root Partition
+
+The root partition is formatted as an ext4 file system and is mounted as read-only. The corresponding fstab entry for the root partition is:
+
+  # <file system> <mount point>   <type>  <options>              <dump>  <pass>
+  /dev/rootfs     /               ext4    ro,errors=remount-ro   0       1
+
+For details, please refer to the HostOS +fstab+ file.
+
+== System Users
+
+In addition to the regular, built-in Ubuntu user accounts, the following users are added:
+
+|====
+|Username     |Home Directory     |Default Shell    |Description
+|backup       |var/lib/backup     |/bin/bash        |Backup subnet state
+|readonly     |/var/lib/readonly  |/bin/bash        |Administrative read-only account for Node Providers/Technicians
+|admin        |/var/lib/admin     |/bin/bash        |Administrative account for Node Providers/Technicians
+|node_exporter|/home/node_exporter|/usr/sbin/nologin|node_exporter service account
+|====
+
+== Hostname
+
+Since every HostOS and GuestOS are created equal, assigning a human-centric hostname isn't feasible (think pets vs. cattle). Instead, the management MAC address is used as part of the hostname.
+
+There are two different hostname schemas used, depending on the stage of the setup process: *Transient Setup Hostname* and *Persistent Setup Hostname*.
+
+*1. Transient Setup Hostname*
+
+This schema is used during the initial setup, before a replica has joined the IC. The format is:
+
+`<system type>-<management mac address>`
+
+Examples:
+
+  host-3cecef6b3799
+  replica-3cecef6b3799
+  boundary-3cecef6b3799
+
+*2. Persistent Setup Hostname*
+
+[NOTE]
+Currently, the Persistent Setup Hostname feature is not used, but it has been developed.
+
+After a node has successfully joined the IC, the first 5 characters of the node-id are added to the end of the hostname. The orchestrator is used to fetch the node's node-id. The format is:
+
+`<system type>-<management mac address>-<first 5 characters of the node-id>`
+
+Examples:
+
+  host-3cecef6b3799-4wd4u
+  replica--3cecef6b3799-4wd4u
+  boundary-3cecef6b3799-4wd4u
+
+== QEMU / Libvirt
+
+=== Virtual Machines
+
+All virtual machines are configured using the libvirt XML format. The configuration template is located at:
+
+`/opt/ic/share/<machine-type>.xml.template`
+
+This template is used to generate the actual XML configuration. The systemd service `generate-guestos-config.service` executes this step, which is necessary to inject the deterministically generated MAC address.
+
+==== CPU Topology
+
+The following CPU topology is defined in the libvirt XML template:
+
+  <vcpu placement='static'>64</vcpu>
+  <cpu mode='host-passthrough' migratable='off'>
+    <cache mode='passthrough'/>
+    <topology sockets='2' cores='16' threads='2'/>
+    <feature policy="require" name="topoext"/>
+  </cpu>
+
+This configuration ensures that the physical CPU topology is reflected in the virtual machine, and the mapping is done accordingly.
+
+== Firewall
+
+The hard-coded firewall ruleset is rather restrictive. A new disk-image has to be proposed and blessed in order to update the rules.
+
+Please find the raw HostOS NFTables ruleset in `nftables.conf`
+
+=== Filter
+
+==== Input
+
+The following TCP/UDP input ports are open:
+
+|====
+|Version|Protocol|Port  |Source                                 |Description
+|IPv4   |TCP     |22    |RFC 1918                               |openssh
+|IPv4   |UDP     |67    |RFC 1918                               |DHCP
+|IPv6   |TCP     |22    |delegated IPv6 subnets from IC registry|openssh
+|IPv6   |TCP     |9100  |delegated IPv6 subnets from IC registry|node_exporter
+|IPv6   |TCP     |19531 |delegated IPv6 subnets from IC registry|systemd-journal-gatewayd
+|====
+
+==== Output
+
+The following TCP/UDP output ports are open:
+
+|====
+|Version|Protocol|Port  |Destination|Description
+|IPv6   |TCP     |53    |any        |DNS
+|IPv6   |UDP     |53    |any        |DNS
+|IPv6   |UDP     |123   |any        |NTP
+|IPv6   |TCP     |80    |any        |HTTP to download update disk images
+|IPv6   |TCP     |443   |any        |HTTPS to download update disk images
+|====
+
+== VMSockets Interface
+
+The primary goal of virtualization is to securely isolate operating systems and system resources. However, there is a need for the virtual machine (GuestOS) to communicate with the underlying hypervisor (HostOS) to perform certain functions.
+
+The VSOCK (VM Socket) acts as a controlled environment for GuestOS to communicate with and steer the HostOS.
+
+To maintain the highest level of isolation between the two operating systems, the Guestos is restricted to strictly defined commands. All VSOCK commands are initiated from the GuestOS.
+
+For a complete list of VSOCK commands and a detailed description of the vsock program, please link:../../rs/ic_os/vsock/README.md[refer to the vsock README].

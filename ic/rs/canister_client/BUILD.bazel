@@ -1,0 +1,87 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+
+# The package is deprecated, NET-1274.
+package(default_visibility = [
+    "//rs/cup_explorer:__pkg__",
+    "//rs/http_endpoints/public:__pkg__",
+    "//rs/nns/init:__pkg__",
+    "//rs/orchestrator:__pkg__",
+    "//rs/registry/admin:__pkg__",
+    "//rs/registry/nns_data_provider:__pkg__",
+    "//rs/replay:__pkg__",
+    "//rs/rosetta-api:__subpackages__",
+    "//rs/rust_canisters/canister_test:__pkg__",
+    "//rs/scenario_tests:__pkg__",
+    "//rs/tests:__subpackages__",
+    "//rs/workload_generator:__pkg__",
+])
+
+DEPENDENCIES = [
+    "//rs/canister_client/sender",
+    "//rs/canonical_state",
+    "//rs/certification",
+    "//rs/crypto/ecdsa_secp256k1",
+    "//rs/crypto/tree_hash",
+    "//rs/protobuf",
+    "//rs/tree_deserializer",
+    "//rs/types/management_canister_types",
+    "//rs/types/types",
+    "@crate_index//:backoff",
+    "@crate_index//:futures-util",
+    "@crate_index//:hyper_0_14_27",
+    "@crate_index//:hyper-rustls",
+    "@crate_index//:itertools",
+    "@crate_index//:prost",
+    "@crate_index//:rustls_0_21_12",
+    "@crate_index//:serde",
+    "@crate_index//:serde_cbor",
+    "@crate_index//:tokio",
+    "@crate_index//:url",
+]
+
+MACRO_DEPENDENCIES = []
+
+DEV_DEPENDENCIES = [
+    "//rs/certification/test-utils",
+    "//rs/crypto/test_utils/tls",
+    "//rs/crypto/test_utils/reproducible_rng",
+    "//rs/crypto/test_utils/root_of_trust",
+    "//rs/test_utilities",
+    "//rs/test_utilities/types",
+    "//rs/validator",
+    "@crate_index//:hex",
+    "@crate_index//:rand",
+    "@crate_index//:rand_chacha",
+    "@crate_index//:tokio-test",
+]
+
+MACRO_DEV_DEPENDENCIES = []
+
+ALIASES = {}
+
+rust_library(
+    name = "canister_client",
+    srcs = glob(["src/**"]),
+    aliases = ALIASES,
+    crate_name = "ic_canister_client",
+    # TODO(NET-1274)
+    # deprecation = "Please consider https://crates.io/crates/ic-agent instead.",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    version = "0.9.0",
+    deps = DEPENDENCIES,
+)
+
+rust_test(
+    name = "canister_client_test",
+    aliases = ALIASES,
+    crate = ":canister_client",
+    proc_macro_deps = MACRO_DEPENDENCIES + MACRO_DEV_DEPENDENCIES,
+    deps = DEPENDENCIES + DEV_DEPENDENCIES,
+)
+
+rust_test(
+    name = "canister_client_tls_test",
+    srcs = ["tests/tls.rs"],
+    proc_macro_deps = MACRO_DEPENDENCIES + MACRO_DEV_DEPENDENCIES,
+    deps = [":canister_client"] + DEPENDENCIES + DEV_DEPENDENCIES,
+)

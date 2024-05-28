@@ -1,0 +1,35 @@
+[package]
+name = "ic-state-layout"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+hex = { workspace = true }
+ic-base-types = { path = "../types/base_types" }
+ic-config = { path = "../config" }
+ic-management-canister-types = { path = "../types/management_canister_types" }
+ic-logger = { path = "../monitoring/logger" }
+ic-metrics = { path = "../monitoring/metrics" }
+ic-protobuf = { path = "../protobuf" }
+ic-replicated-state = { path = "../replicated_state" }
+ic-sys = { path = "../sys" }
+ic-types = { path = "../types/types" }
+ic-utils = { path = "../utils" }
+ic-wasm-types = { path = "../types/wasm_types" }
+libc = "0.2.91"
+prometheus = { workspace = true }
+prost = { workspace = true }
+scoped_threadpool = "0.1.*"
+slog = { workspace = true }
+
+[dev-dependencies]
+ic-interfaces = { path = "../interfaces" }
+ic-test-utilities-logger = { path = "../test_utilities/logger" }
+ic-test-utilities-tmpdir = { path = "../test_utilities/tmpdir" }
+ic-test-utilities-time = { path = "../test_utilities/time" }
+ic-test-utilities-types = { path = "../test_utilities/types" }
+itertools = { workspace = true }
+proptest = "1.0"

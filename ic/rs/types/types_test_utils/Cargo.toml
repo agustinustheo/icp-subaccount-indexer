@@ -1,0 +1,13 @@
+[package]
+name = "ic-types-test-utils"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+ic-protobuf = { path = "../../protobuf" }
+ic-types = { path = "../types" }
+proptest = "1.0"
+strum = { workspace = true }

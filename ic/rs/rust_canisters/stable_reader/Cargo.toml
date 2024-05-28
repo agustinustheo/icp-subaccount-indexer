@@ -1,0 +1,10 @@
+[package]
+name = "stable_reader"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+byteorder = "1.3.4"

@@ -1,0 +1,26 @@
+load("@rules_rust//rust:defs.bzl", "rust_library")
+
+rust_library(
+    name = "test_utils",
+    testonly = True,
+    srcs = glob(["src/**"]),
+    crate_name = "ic_crypto_test_utils",
+    version = "0.9.0",
+    visibility = [
+        "//rs/canister_client:__subpackages__",
+        "//rs/crypto:__subpackages__",
+        "//rs/p2p/quic_transport:__subpackages__",
+        "//rs/test_utilities:__pkg__",
+        "//rs/validator/http_request_test_utils:__subpackages__",
+    ],
+    deps = [
+        "//rs/crypto/internal/csp_test_utils",
+        "//rs/interfaces/registry",
+        "//rs/registry/fake",
+        "//rs/registry/proto_data_provider",
+        "//rs/types/types",
+        "@crate_index//:ed25519-consensus",
+        "@crate_index//:rand",
+        "@crate_index//:rand_chacha",
+    ],
+)

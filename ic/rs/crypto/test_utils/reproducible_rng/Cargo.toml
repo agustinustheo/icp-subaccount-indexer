@@ -1,0 +1,11 @@
+[package]
+name = "ic-crypto-test-utils-reproducible-rng"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+rand = "0.8"
+rand_chacha = "0.3"

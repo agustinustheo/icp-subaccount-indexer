@@ -1,0 +1,83 @@
+[package]
+name = "ic-consensus"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+ic-config = { path = "../config" }
+ic-consensus-utils = { path = "./utils" }
+ic-crypto = { path = "../crypto" }
+ic-crypto-prng = { path = "../crypto/prng" }
+ic-crypto-test-utils-canister-threshold-sigs = { path = "../crypto/test_utils/canister_threshold_sigs" }
+ic-crypto-utils-threshold-sig-der = { path = "../crypto/utils/threshold_sig_der" }
+ic-error-types = { path = "../types/error_types" }
+ic-https-outcalls-consensus = { path = "../https_outcalls/consensus" }
+ic-management-canister-types = { path = "../types/management_canister_types" }
+ic-interfaces = { path = "../interfaces" }
+ic-interfaces-registry = { path = "../interfaces/registry" }
+ic-interfaces-state-manager = { path = "../interfaces/state_manager" }
+ic-registry-client-helpers = { path = "../registry/helpers" }
+ic-replicated-state = { path = "../replicated_state" }
+ic-logger = { path = "../monitoring/logger" }
+ic-metrics = { path = "../monitoring/metrics" }
+ic-registry-subnet-type = { path = "../registry/subnet_type" }
+ic-registry-subnet-features = { path = "../registry/subnet_features" }
+ic-protobuf = { path = "../protobuf" }
+ic-types = { path = "../types/types" }
+phantom_newtype = { path = "../phantom_newtype" }
+prometheus = { workspace = true }
+rand = "0.8"
+rand_chacha = "0.3"
+rayon = "1.5.1"
+slog = { workspace = true }
+strum_macros = { workspace = true }
+
+[dev-dependencies]
+assert_matches = { workspace = true }
+criterion = "0.5"
+ic-artifact-pool = { path = "../artifact_pool" }
+ic-btc-types-internal = { path = "../bitcoin/types/internal" }
+ic-config = { path = "../config" }
+ic-consensus-mocks = { path = "./mocks" }
+ic-constants = { path = "../constants" }
+ic-crypto-temp-crypto = { path = "../crypto/temp_crypto" }
+ic-crypto-test-utils-ni-dkg = { path = "../crypto/test_utils/ni-dkg" }
+ic-crypto-test-utils-reproducible-rng = { path = "../crypto/test_utils/reproducible_rng" }
+ic-crypto-tree-hash = { path = "../crypto/tree_hash" }
+ic-execution-environment = { path = "../execution_environment" }
+ic-ingress-manager = { path = "../ingress_manager" }
+ic-interfaces-certified-stream-store = { path = "../interfaces/certified_stream_store" }
+ic-interfaces-mocks = { path = "../interfaces/mocks" }
+ic-interfaces-state-manager-mocks = { path = "../interfaces/state_manager/mocks" }
+ic-messaging = { path = "../messaging" }
+ic-registry-client-fake = { path = "../registry/fake" }
+ic-registry-keys = { path = "../registry/keys" }
+ic-registry-proto-data-provider = { path = "../registry/proto_data_provider" }
+ic-state-manager = { path = "../state_manager" }
+ic-sys = { path = "../sys" }
+ic-test-artifact-pool = { path = "../test_utilities/artifact_pool" }
+ic-test-utilities = { path = "../test_utilities" }
+ic-test-utilities-consensus = { path = "../test_utilities/consensus" }
+ic-test-utilities-logger = { path = "../test_utilities/logger" }
+ic-test-utilities-registry = { path = "../test_utilities/registry" }
+ic-test-utilities-state = { path = "../test_utilities/state" }
+ic-test-utilities-time = { path = "../test_utilities/time" }
+ic-test-utilities-types = { path = "../test_utilities/types" }
+prost = { workspace = true }
+serde_cbor = { workspace = true }
+strum = { workspace = true }
+slog-async = "2.5.0"
+slog-envlogger = "2.2.0"
+slog-term = "2.6.0"
+tempfile = "3.1.0"
+
+[[bench]]
+name = "validate_payload"
+harness = false
+
+[features]
+default = []
+malicious_code = []

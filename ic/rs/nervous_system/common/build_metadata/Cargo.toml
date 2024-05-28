@@ -1,0 +1,10 @@
+[package]
+name = "ic-nervous-system-common-build-metadata"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[lib]
+proc-macro = true

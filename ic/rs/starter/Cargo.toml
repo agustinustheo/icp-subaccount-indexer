@@ -1,0 +1,30 @@
+[package]
+name = "ic-starter"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = { workspace = true }
+clap = { version = "3.2.25", features = ["derive"] }
+ic-config = { path = "../config" }
+ic-logger = { path = "../monitoring/logger" }
+ic-prep = { path = "../prep" }
+ic-protobuf = { path = "../protobuf" }
+ic-registry-provisional-whitelist = { path = "../registry/provisional_whitelist" }
+ic-registry-subnet-type = { path = "../registry/subnet_type" }
+ic-registry-subnet-features = { path = "../registry/subnet_features" }
+ic-types = { path = "../types/types" }
+ic-management-canister-types = { path = "../types/management_canister_types" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+slog = { workspace = true }
+tempfile = "3.1.0"
+
+[[bin]]
+name = "ic-starter"
+path = "src/main.rs"

@@ -1,0 +1,16 @@
+[package]
+name = "ic-test-utilities-in-memory-logger"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+ic-config = { path = "../../config" }
+ic-logger = { path = "../../monitoring/logger" }
+ic-protobuf = { path = "../../protobuf" }
+serde_json = { workspace = true }
+slog = { workspace = true }
+slog-async = { version = "2.5", features = ["nested-values"] }
+parking_lot = "0.12.1"

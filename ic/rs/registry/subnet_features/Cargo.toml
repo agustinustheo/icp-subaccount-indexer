@@ -1,0 +1,13 @@
+[package]
+name = "ic-registry-subnet-features"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+candid = { workspace = true }
+ic-protobuf = { path = "../../protobuf" }
+ic-management-canister-types = { path = "../../types/management_canister_types" }
+serde = { workspace = true }

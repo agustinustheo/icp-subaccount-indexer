@@ -1,0 +1,54 @@
+[package]
+name = "ic-nervous-system-common"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[lib]
+name = "ic_nervous_system_common"
+path = "src/lib.rs"
+
+[dependencies]
+build-info = { workspace = true }
+
+base64 = { workspace = true }
+bytes = { workspace = true }
+by_address = "1.1.0"
+async-trait = { workspace = true }
+dfn_core = { path = "../../rust_canisters/dfn_core" }
+dfn_protobuf = { path = "../../rust_canisters/dfn_protobuf" }
+ic-base-types = { path = "../../types/base_types" }
+ic-canister-log = { path = "../../rust_canisters/canister_log" }
+ic-canisters-http-types = { path = "../../rust_canisters/http_types" }
+ic-crypto-sha2 = { path = "../../crypto/sha2" }
+ic-ledger-core = { path = "../../rosetta-api/ledger_core" }
+ic-metrics-encoder = "1"
+ic-nervous-system-runtime = { path = "../runtime" }
+icp-ledger = { path = "../../rosetta-api/icp_ledger" }
+icrc-ledger-types = { path = "../../../packages/icrc-ledger-types" }
+ic-nns-constants = { path = "../../nns/constants" }
+ic-stable-structures = { workspace = true }
+json5 = "0.4.1"
+lazy_static = "1.4.0"
+maplit = "1.0.2"
+mockall = { workspace = true }
+num-traits = { workspace = true }
+priority-queue = "1.3.1"
+prost = { workspace = true }
+rust_decimal = "1.25"
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
+assert_matches = { workspace = true }
+
+[build-dependencies]
+build-info-build = { workspace = true }
+
+[dev-dependencies]
+ic-nns-governance = { path = "../../nns/governance" }
+proptest = "1.0"
+serde_bytes = { workspace = true }
+serde_derive = "1.0"

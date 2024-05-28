@@ -1,0 +1,40 @@
+load("@rules_rust//rust:defs.bzl", "rust_library", "rust_test")
+
+package(default_visibility = ["//visibility:public"])
+
+DEPENDENCIES = [
+    # Keep sorted.
+    "//rs/canister_client",
+    "//rs/certification",
+    "//rs/crypto/tree_hash",
+    "//rs/interfaces/registry",
+    "//rs/nns/constants",
+    "//rs/registry/transport",
+    "//rs/tree_deserializer",
+    "//rs/types/types",
+    "@crate_index//:chrono",
+    "@crate_index//:prost",
+    "@crate_index//:rand",
+    "@crate_index//:serde",
+    "@crate_index//:url",
+]
+
+DEV_DEPENDENCIES = [
+    # Keep sorted.
+    "//rs/certification/test-utils",
+    "@crate_index//:leb128",
+]
+
+rust_library(
+    name = "nns_data_provider",
+    srcs = glob(["src/**"]),
+    crate_name = "ic_registry_nns_data_provider",
+    version = "0.9.0",
+    deps = DEPENDENCIES,
+)
+
+rust_test(
+    name = "nns_data_provider_test",
+    crate = ":nns_data_provider",
+    deps = DEV_DEPENDENCIES,
+)

@@ -1,0 +1,2 @@
+type Options = record { derivation_path : vec blob; key_name : text };
+service : { get_sig : (Options) -> () }

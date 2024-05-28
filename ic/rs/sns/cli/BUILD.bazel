@@ -1,0 +1,140 @@
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_doc_test", "rust_library", "rust_test")
+
+package(default_visibility = ["//visibility:public"])
+
+# See rs/nervous_system/feature_test.md
+BASE_DEPENDENCIES = [
+    "//rs/crypto/sha2",
+    "//rs/nervous_system/common",
+    "//rs/nervous_system/common/test_keys",
+    "//rs/nervous_system/humanize",
+    "//rs/nervous_system/proto",
+    "//rs/nns/common",
+    "//rs/nns/constants",
+    "//rs/sns/root",
+    "//rs/types/base_types",
+    "@crate_index//:anyhow",
+    "@crate_index//:base64",
+    "@crate_index//:candid",
+    "@crate_index//:clap",
+    "@crate_index//:hex",
+    "@crate_index//:json-patch",
+    "@crate_index//:pretty_assertions",
+    "@crate_index//:serde",
+    "@crate_index//:serde_json",
+    "@crate_index//:serde_yaml",
+    "@crate_index//:tempfile",
+    "@crate_index//:thiserror",
+]
+
+# Each target declared in this file may choose either these (release-ready)
+# dependencies (`DEPENDENCIES`), or `DEPENDENCIES_WITH_TEST_FEATURES` feature previews.
+DEPENDENCIES = BASE_DEPENDENCIES + [
+    "//rs/nns/governance",
+    "//rs/nns/sns-wasm",
+    "//rs/sns/governance",
+    "//rs/sns/init",
+]
+
+DEPENDENCIES_WITH_TEST_FEATURES = BASE_DEPENDENCIES + [
+    "//rs/nns/governance:governance--test_feature",
+    "//rs/nns/sns-wasm:sns-wasm--test_feature",
+    "//rs/sns/governance:governance--test_feature",
+    "//rs/sns/init:init--test_feature",
+]
+
+MACRO_DEPENDENCIES = []
+
+DEV_DEPENDENCIES = [
+    "@crate_index//:lazy_static",
+]
+
+MACRO_DEV_DEPENDENCIES = []
+
+ALIASES = {}
+
+rust_library(
+    name = "cli",
+    srcs = glob(
+        ["src/**/*.rs"],
+        exclude = [
+            "**/*tests.rs",
+            "main.rs",
+        ],
+    ),
+    aliases = ALIASES,
+    crate_name = "ic_sns_cli",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    version = "1.0.0",
+    deps = DEPENDENCIES,
+)
+
+rust_library(
+    name = "cli--test_feature",
+    srcs = glob(
+        ["src/**/*.rs"],
+        exclude = [
+            "**/*tests.rs",
+            "main.rs",
+        ],
+    ),
+    aliases = ALIASES,
+    crate_features = ["test"],
+    crate_name = "ic_sns_cli",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    version = "1.0.0",
+    deps = DEPENDENCIES_WITH_TEST_FEATURES,
+)
+
+rust_binary(
+    name = "sns",
+    srcs = ["src/main.rs"],
+    aliases = ALIASES,
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    version = "1.0.0",
+    deps = DEPENDENCIES + [":cli"],
+)
+
+rust_binary(
+    name = "sns--test_feature",
+    srcs = ["src/main.rs"],
+    aliases = ALIASES,
+    crate_features = ["test"],
+    crate_name = "sns",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    version = "1.0.0",
+    deps = DEPENDENCIES_WITH_TEST_FEATURES + [":cli--test_feature"],
+)
+
+rust_test(
+    name = "sns_test",
+    srcs = glob(
+        ["src/**"],
+        exclude = ["src/main.rs"],
+    ),
+    aliases = ALIASES,
+    args = [
+        # This is needed because one of the tests changes directory (namely,
+        # test_convert_to_create_service_nervous_system), while other tests
+        # assume that the current working directory remains unchanged. This does
+        # not have a significant negative impact on test execution time, because
+        # this test is very fast.
+        "--test-threads=1",
+    ],
+    crate_root = "src/lib.rs",
+    data = [
+        "test.png",
+        "test_sns_init_v1.yaml",
+        "test_sns_init_v2.yaml",
+    ],
+    env = {
+        "CARGO_MANIFEST_DIR": "rs/sns/cli",
+    },
+    proc_macro_deps = MACRO_DEPENDENCIES + MACRO_DEV_DEPENDENCIES,
+    deps = DEPENDENCIES_WITH_TEST_FEATURES + DEV_DEPENDENCIES,
+)
+
+rust_doc_test(
+    name = "sns_doctest",
+    crate = ":cli",
+)

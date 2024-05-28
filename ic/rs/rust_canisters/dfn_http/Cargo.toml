@@ -1,0 +1,18 @@
+[package]
+name = "dfn_http"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+candid = { workspace = true }
+serde = { workspace = true }
+dfn_candid = { path = "../dfn_candid" }
+dfn_core = { path = "../dfn_core" }
+serde_bytes = { workspace = true }
+
+[[bin]]
+name = "http_wasm"
+path = "test/wasm.rs"

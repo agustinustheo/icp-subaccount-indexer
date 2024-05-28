@@ -1,0 +1,13 @@
+[package]
+name = "universal-canister"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+candid = { workspace = true }
+serde = { workspace = true }
+wee_alloc = "0.4.3"
+lazy_static = "1.4.0"

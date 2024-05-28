@@ -1,0 +1,22 @@
+[package]
+name = "kv_store"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[[bin]]
+name = "kv_store"
+path = "src/main.rs"
+
+[dependencies]
+ic-cdk = { workspace = true }
+ic-cdk-macros = { workspace = true }
+candid = { workspace = true }
+ic-certified-map = "0.3"
+base64 = { workspace = true }
+flate2 = "1"
+serde = { workspace = true }
+serde_cbor = { workspace = true }
+sha2 = "0.10.6"

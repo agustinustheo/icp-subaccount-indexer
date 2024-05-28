@@ -1,0 +1,12 @@
+[package]
+name = "ic-interfaces-registry"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+ic-types = { path = "../..//types/types" }
+prost = { workspace = true }
+serde = { workspace = true }

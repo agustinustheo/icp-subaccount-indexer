@@ -1,0 +1,12 @@
+load("@rules_rust//rust:defs.bzl", "rust_library")
+
+package(default_visibility = ["//visibility:public"])
+
+rust_library(
+    name = "dfn_protobuf",
+    srcs = glob(["src/**"]),
+    deps = [
+        "//rs/rust_canisters/on_wire",
+        "@crate_index//:prost",
+    ],
+)

@@ -1,0 +1,10 @@
+[package]
+name = "ic-nns-constants"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[dependencies]
+ic-base-types = { path = "../../types/base_types"}

@@ -1,0 +1,191 @@
+load("@rules_rust//cargo:defs.bzl", "cargo_build_script")
+load("@rules_rust//rust:defs.bzl", "rust_binary", "rust_library", "rust_test")
+load("//bazel:canisters.bzl", "rust_canister")
+load("//bazel:defs.bzl", "rust_test_suite_with_extra_srcs")
+load("//bazel:prost.bzl", "generated_files_check")
+
+package(default_visibility = ["//visibility:public"])
+
+filegroup(
+    name = "protos",
+    srcs = glob(["proto/**"]),
+)
+
+# See rs/nervous_system/feature_test.md
+BASE_DEPENDENCIES = [
+    "//packages/icrc-ledger-types:icrc_ledger_types",
+    "//rs/nervous_system/clients",
+    "//rs/nervous_system/common",
+    "//rs/nervous_system/neurons_fund",
+    "//rs/nervous_system/runtime",
+    "//rs/nervous_system/proto",
+    "//rs/rosetta-api/ledger_core",
+    "//rs/rosetta-api/icp_ledger",
+    "//rs/rust_canisters/canister_log",
+    "//rs/rust_canisters/dfn_candid",
+    "//rs/rust_canisters/dfn_core",
+    "//rs/rust_canisters/http_types",
+    "//rs/types/base_types",
+    "//rs/utils",
+    "@crate_index//:build-info",
+    "@crate_index//:candid",
+    "@crate_index//:comparable",
+    "@crate_index//:hex",
+    "@crate_index//:ic-metrics-encoder",
+    "@crate_index//:ic-stable-structures",
+    "@crate_index//:itertools",
+    "@crate_index//:lazy_static",
+    "@crate_index//:maplit",
+    "@crate_index//:prost",
+    "@crate_index//:rust_decimal",
+    "@crate_index//:serde",
+    "@crate_index//:serde_bytes",
+]
+
+# Each target declared in this file may choose either these (release-ready)
+# dependencies (`DEPENDENCIES`), or `DEPENDENCIES_WITH_TEST_FEATURES` feature previews.
+DEPENDENCIES = BASE_DEPENDENCIES + [
+    "//rs/sns/governance",
+]
+
+DEPENDENCIES_WITH_TEST_FEATURES = BASE_DEPENDENCIES + [
+    "//rs/sns/governance:governance--test_feature",
+]
+
+MACRO_DEPENDENCIES = [
+    "@crate_index//:async-trait",
+    "@crate_index//:rust_decimal_macros",
+]
+
+BUILD_DEPENDENCIES = [
+    "//rs/types/base_types",
+    "@crate_index//:build-info-build",
+    "@crate_index//:prost-build",
+]
+
+DEV_DEPENDENCIES = [
+    "//rs/nervous_system/common/test_keys",
+    "//rs/nervous_system/common/test_utils",
+    "//rs/sns/swap/protobuf_generator:lib",
+    "//rs/test_utilities/compare_dirs",
+    "@crate_index//:candid_parser",
+    "@crate_index//:futures",
+    "@crate_index//:pretty_assertions",
+    "@crate_index//:proptest",
+    "@crate_index//:tempfile",
+    "@crate_index//:tokio",
+    "@crate_index//:tokio-test",
+]
+
+MACRO_DEV_DEPENDENCIES = []
+
+ALIASES = {}
+
+cargo_build_script(
+    name = "build_script",
+    srcs = ["build.rs"],
+    aliases = ALIASES,
+    data = [],  # build script data (e.g. template files) goes here
+    version = "0.1.0",
+    deps = BUILD_DEPENDENCIES,
+)
+
+rust_library(
+    name = "swap",
+    srcs = glob([
+        "src/**",
+    ]),
+    aliases = ALIASES,
+    crate_name = "ic_sns_swap",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    version = "0.1.0",
+    deps = DEPENDENCIES + [":build_script"],
+)
+
+rust_library(
+    name = "swap--test_feature",
+    srcs = glob([
+        "src/**",
+    ]),
+    aliases = ALIASES,
+    crate_features = ["test"],
+    crate_name = "ic_sns_swap",
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    version = "0.1.0",
+    deps = DEPENDENCIES_WITH_TEST_FEATURES + [":build_script"],
+)
+
+rust_binary(
+    name = "generate_did",
+    srcs = ["canister/canister.rs"],
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    deps = DEPENDENCIES + [
+        ":build_script",
+        ":swap",
+    ],
+)
+
+rust_canister(
+    name = "sns-swap-canister",
+    srcs = ["canister/canister.rs"],
+    aliases = ALIASES,
+    proc_macro_deps = MACRO_DEPENDENCIES,
+    service_file = ":canister/swap.did",
+    deps = DEPENDENCIES + [
+        ":build_script",
+        ":swap",
+    ],
+)
+
+rust_test(
+    name = "swap_test",
+    aliases = ALIASES,
+    crate = ":swap",
+    proc_macro_deps = MACRO_DEPENDENCIES + MACRO_DEV_DEPENDENCIES,
+    deps = DEPENDENCIES + DEV_DEPENDENCIES,
+)
+
+rust_test(
+    name = "canister_unit_test",
+    crate = ":_wasm_sns-swap-canister",
+    data = ["canister/swap.did"],
+    env = {
+        "CARGO_MANIFEST_DIR": "rs/sns/swap",
+    },
+    deps = ["@crate_index//:tokio"],
+)
+
+rust_test_suite_with_extra_srcs(
+    name = "swap_integration_tests",
+    srcs = glob(
+        ["tests/**/*.rs"],
+        exclude = [
+            "tests/check_generated_files.rs",
+            "tests/common/mod.rs",
+            "tests/common/doubles.rs",
+        ],
+    ),
+    aliases = ALIASES,
+    extra_srcs = [
+        "tests/common/mod.rs",
+        "tests/common/doubles.rs",
+    ],
+    proc_macro_deps = MACRO_DEPENDENCIES + MACRO_DEV_DEPENDENCIES,
+    deps = [":swap--test_feature"] + DEPENDENCIES_WITH_TEST_FEATURES + DEV_DEPENDENCIES + [":build_script"],
+)
+
+generated_files_check(
+    name = "check_generated_files",
+    srcs = ["tests/check_generated_files.rs"],
+    data = glob(["src/gen/**"]) + [
+        ":protos",
+        "//rs/nervous_system/proto:protos",
+        "//rs/types/base_types:protos",
+    ],
+    manifest_dir = "rs/sns/swap",
+    deps = [
+        "//rs/sns/swap/protobuf_generator:lib",
+        "//rs/test_utilities/compare_dirs",
+        "@crate_index//:tempfile",
+    ],
+)

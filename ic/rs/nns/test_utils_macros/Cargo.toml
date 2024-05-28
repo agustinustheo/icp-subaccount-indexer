@@ -1,0 +1,15 @@
+[package]
+name = "ic-nns-test-utils-macros"
+version.workspace = true
+authors.workspace = true
+edition.workspace = true
+description.workspace = true
+documentation.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { workspace = true }
+quote = "1.0"
+
