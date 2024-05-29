@@ -1,6 +1,7 @@
 #[cfg(test)]
 mod tests {
     use crate::types::*;
+    use crate::Operation::*;
     use crate::*;
     use once_cell::sync::Lazy;
     use std::time::{SystemTime, UNIX_EPOCH};
@@ -154,7 +155,7 @@ mod tests {
         let icrc1_memo = Some(vec![1, 2, 3, 4]);
         let operation = Some(Operation::Mint(Mint {
             to: vec![],
-            amount: E8s { e8s: 1000 },
+            amount: Tokens { e8s: 1000 },
         }));
         let created_at_time = SystemTime::now()
             .duration_since(UNIX_EPOCH)
@@ -162,25 +163,25 @@ mod tests {
             .as_nanos() as u64; // Simplified timestamp
 
         let transaction = Transaction {
-            memo,
+            memo: ic_ledger_types::Memo(memo),
             icrc1_memo: icrc1_memo.clone(),
             operation: operation.clone(),
-            created_at_time: Timestamp {
+            created_at_time: Some(TimeStamp {
                 timestamp_nanos: created_at_time,
-            },
+            }),
         };
 
         let stored_transaction = StoredTransactions::new(index, transaction);
 
         assert_eq!(stored_transaction.index, index);
-        assert_eq!(stored_transaction.memo, memo);
+        assert_eq!(stored_transaction.memo, ic_ledger_types::Memo(memo));
         assert_eq!(stored_transaction.icrc1_memo, icrc1_memo);
         assert_eq!(stored_transaction.operation, operation);
         assert_eq!(
             stored_transaction.created_at_time,
-            Timestamp {
+            Some(TimeStamp {
                 timestamp_nanos: created_at_time
-            }
+            })
         );
     }
 
@@ -205,10 +206,10 @@ mod tests {
                     StoredTransactions::new(
                         i,
                         Transaction {
-                            memo: i,
+                            memo: ic_ledger_types::Memo(i),
                             icrc1_memo: None,
                             operation: None,
-                            created_at_time: Timestamp { timestamp_nanos },
+                            created_at_time: Some(TimeStamp { timestamp_nanos }),
                         },
                     ),
                 );
@@ -251,7 +252,9 @@ mod tests {
     fn clear_transactions_with_specific_timestamp() {
         let nanos = 100000;
 
-        let specific_timestamp = Timestamp::from_nanos(nanos);
+        let specific_timestamp = TimeStamp {
+            timestamp_nanos: nanos,
+        };
         populate_transactions(100, None);
 
         let cleared = clear_transactions(None, Some(specific_timestamp)).unwrap();
@@ -262,7 +265,9 @@ mod tests {
     fn clear_transactions_with_similar_timestamp() {
         let nanos = 100000;
 
-        let specific_timestamp = Timestamp::from_nanos(nanos);
+        let specific_timestamp = TimeStamp {
+            timestamp_nanos: nanos,
+        };
         populate_transactions(100, Some(nanos));
 
         let cleared = clear_transactions(None, Some(specific_timestamp)).unwrap();
@@ -296,7 +301,13 @@ mod tests {
         populate_transactions(100, Some(50000)); // Populate 100 transactions, all with the same timestamp for simplicity
 
         // Clear transactions with a count less than 80 and a timestamp less than 60000 nanoseconds
-        let cleared = clear_transactions(Some(80), Some(Timestamp::from_nanos(60000))).unwrap();
+        let cleared = clear_transactions(
+            Some(80),
+            Some(TimeStamp {
+                timestamp_nanos: 60000,
+            }),
+        )
+        .unwrap();
         // This assumes that the criteria are combined with an OR logic, not AND
         assert_eq!(
             cleared.len(),
@@ -310,7 +321,13 @@ mod tests {
         populate_transactions(100, Some(100000)); // Populate transactions with a specific timestamp
 
         // Clear transactions with a timestamp exactly equal to one of the transactions' timestamps
-        let cleared = clear_transactions(None, Some(Timestamp::from_nanos(100000))).unwrap();
+        let cleared = clear_transactions(
+            None,
+            Some(TimeStamp {
+                timestamp_nanos: 100000,
+            }),
+        )
+        .unwrap();
         // Depending on implementation, this may remove all transactions if they're considered "up to and including" the given timestamp
         assert!(
             cleared.is_empty(),
@@ -327,7 +344,7 @@ mod tests {
         assert_eq!(cleared.len(), 0); // Assuming all transactions are cleared
 
         // Edge case 2: up_to_timestamp is before any stored transaction
-        let early_timestamp = Timestamp::from_nanos(1); // Example early timestamp
+        let early_timestamp = TimeStamp { timestamp_nanos: 1 }; // Example early timestamp
         populate_transactions(10, None); // Repopulate transactions after they were all cleared
         let cleared = clear_transactions(None, Some(early_timestamp)).unwrap();
         assert_eq!(cleared.len(), 10); // Assuming no transactions are removed because all are after the timestamp
@@ -435,16 +452,16 @@ mod tests {
                 1,
                 StoredTransactions {
                     index: 1,
-                    memo: 123,
+                    memo: ic_ledger_types::Memo(123),
                     icrc1_memo: None,
                     operation: Some(Operation::Transfer(Transfer {
                         to: hex_str_to_vec(&to_subaccount_id.to_hex()).unwrap(),
-                        fee: E8s { e8s: 100 },
+                        fee: Tokens { e8s: 100 },
                         from: hex_str_to_vec(&from_subaccount_id.to_hex()).unwrap(),
-                        amount: E8s { e8s: 10000 },
+                        amount: Tokens { e8s: 10000 },
                         spender: Some(hex_str_to_vec(&spender_subaccount_id.to_hex()).unwrap()),
                     })),
-                    created_at_time: Timestamp { timestamp_nanos: 0 },
+                    created_at_time: TimeStamp { timestamp_nanos: 0 },
                     sweep_status: SweepStatus::NotSwept,
                 },
             );
@@ -531,16 +548,16 @@ mod tests {
                 1,
                 StoredTransactions {
                     index: 1,
-                    memo: 100,
+                    memo: ic_ledger_types::Memo(100),
                     icrc1_memo: None,
-                    operation: Some(Operation::Transfer(Transfer {
+                    operation: Some(Transfer {
                         to: hex_str_to_vec(&to_subaccount_id.to_hex()).unwrap(),
-                        fee: E8s { e8s: 100 },
+                        fee: Tokens { e8s: 100 },
                         from: hex_str_to_vec(&from_subaccount_id.to_hex()).unwrap(),
-                        amount: E8s { e8s: 10000 },
+                        amount: Tokens { e8s: 10000 },
                         spender: Some(hex_str_to_vec(&spender_subaccount_id.to_hex()).unwrap()),
-                    })),
-                    created_at_time: Timestamp { timestamp_nanos: 0 },
+                    }),
+                    created_at_time: Some(TimeStamp { timestamp_nanos: 0 }),
                     sweep_status: SweepStatus::NotSwept,
                 },
             );
@@ -548,11 +565,12 @@ mod tests {
                 2,
                 StoredTransactions {
                     index: 2,
-                    memo: 101,
+                    memo: ic_ledger_types::Memo(101),
                     icrc1_memo: None,
                     operation: None, // Operation that should not be swept
-                    created_at_time: Timestamp { timestamp_nanos: 0 },
+                    created_at_time: Some(TimeStamp { timestamp_nanos: 0 }),
                     sweep_status: SweepStatus::Swept,
+                    tx_hash: "",
                 },
             );
         });
