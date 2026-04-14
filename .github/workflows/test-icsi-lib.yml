@@ -16,7 +16,7 @@ on:
 
 env:
   RUST_VERSION: 1.82.0
-  NODE_VERSION: 20
+  NODE_VERSION: 24
 
 jobs:
   test-icsi-lib:
