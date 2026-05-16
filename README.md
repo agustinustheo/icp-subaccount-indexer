@@ -1,5 +1,33 @@
 <img width="200" src="./docs/icsi.png">
 
+> [!WARNING]
+> ## This project is no longer actively maintained
+>
+> ICSI has been archived and is no longer under active development.
+>
+> The ICP ecosystem has evolved significantly since this project was created, and newer approaches now exist for:
+>
+> - Native ICRC-1 account handling
+> - Direct ledger polling inside application canisters
+> - Chain-key / Threshold ECDSA wallet architectures
+> - Modern multi-chain custody systems
+>
+> As a result:
+>
+> - No new features are planned
+> - Bug fixes and security patches are not guaranteed
+> - Issues and pull requests may not receive responses
+> - Production use is discouraged unless you fully understand the risks
+>
+> Existing deployments may continue functioning, but this repository should be considered a historical reference implementation.
+>
+> ### Recommended Alternatives
+>
+> - Native ICRC-1 ledger integration patterns
+> - Chain-key + Threshold ECDSA architectures
+> - Oisy Wallet architecture
+> - Custom lightweight ledger indexers tailored to your application
+
 # 🧑‍🚀 ICSI: ICP Sub-Account Indexer
 
 Streamline the management and indexing of principal sub-accounts for ICRC transactions.
